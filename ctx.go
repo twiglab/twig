@@ -29,8 +29,8 @@ type C interface {
 	QueryParams() url.Values
 	QueryString() string
 
-	//FormValue(string) string
-	//FormParams() (url.Values, error)
+	FormValue(string) string
+	FormParams() (url.Values, error)
 
 	Get(string) interface{}
 	Set(string, interface{})
@@ -192,6 +192,35 @@ func (c *ctx) QueryParams() url.Values {
 func (c *ctx) QueryString() string {
 	return c.req.URL.RawQuery
 }
+
+func (c *ctx) FormValue(name string) string {
+	return c.req.FormValue(name)
+}
+
+func (c *ctx) FormParams() (url.Values, error) {
+	if strings.HasPrefix(c.req.Header.Get(HeaderContentType), MIMEMultipartForm) {
+		if err := c.req.ParseMultipartForm(defaultMemory); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := c.req.ParseForm(); err != nil {
+			return nil, err
+		}
+	}
+	return c.req.Form, nil
+}
+
+/*
+func (c *context) FormFile(name string) (*multipart.FileHeader, error) {
+	_, fh, err := c.request.FormFile(name)
+	return fh, err
+}
+
+func (c *context) MultipartForm() (*multipart.Form, error) {
+	err := c.request.ParseMultipartForm(defaultMemory)
+	return c.request.MultipartForm, err
+}
+*/
 
 func (c *ctx) Cookie(name string) (*http.Cookie, error) {
 	return c.req.Cookie(name)
