@@ -35,7 +35,7 @@ func TODO() *Twig {
 	t := &Twig{
 		Muxer: NewToyMux(),
 	}
-	t.Logger = NewLog(os.Stdout)
+	t.Logger = newLog(os.Stdout, "twig-log-")
 	t.HttpErrorHandler = t.DefaultHttpErrorHandler
 	t.pool.New = func() interface{} {
 		return t.newCtx(nil, nil)

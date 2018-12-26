@@ -3,19 +3,10 @@ package twig
 import (
 	"io"
 	"log"
-	"os"
 )
 
-func NewLog(w io.Writer) Logger {
-	return log.New(w, "twig-log-", log.LstdFlags|log.Llongfile)
-}
-
-func NewStdLog(name string) Logger {
-	return log.New(os.Stdout, name, log.LstdFlags|log.Llongfile)
-}
-
-func NewErrLog(name string) Logger {
-	return log.New(os.Stderr, name, log.LstdFlags|log.Llongfile)
+func newLog(w io.Writer, name string) Logger {
+	return log.New(w, name, log.LstdFlags|log.Llongfile)
 }
 
 type Logger interface {
