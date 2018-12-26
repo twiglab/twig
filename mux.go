@@ -13,8 +13,7 @@ type Muxer interface {
 }
 
 /*
-RedixTreeMux 给予Redix树实现路由
-此处代码是从Echo中抄袭过来， 虽然在设计之初尝试了各种优化方法希望能够提升，但是尝试之后发现Echo中的Redix树的实现目前来说是最优的
+RedixTreeMux 基于Redix树实现路由
 */
 type (
 	kind     uint8
@@ -217,9 +216,10 @@ func (r *RedixTreeMux) Add(method, path string, handler HandlerFunc, m ...Middle
 }
 
 func (r *RedixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath string, pnames []string) {
+	// 调整url最大参数
 	l := len(pnames)
 	if l > MaxParam {
-		panic("Twig: plz check twig.MaxParam . (params MUST less then MaxParam)")
+		MaxParam = l
 	}
 
 	cn := r.tree // Current node as root

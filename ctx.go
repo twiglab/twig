@@ -18,6 +18,8 @@ type C interface {
 	IsTls() bool
 	IsWebSocket() bool
 
+	//IsAJAX() bool
+
 	Scheme() string
 
 	RealIP() string
