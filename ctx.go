@@ -58,6 +58,9 @@ type C interface {
 	Logger() Logger
 }
 
+/*
+MContext 专门方便集成其他路由设定的Context接口
+*/
 type MContext interface {
 	Logger() Logger
 
