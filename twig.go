@@ -2,7 +2,6 @@ package twig
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -33,58 +32,26 @@ type Twig struct {
 
 func TODO() *Twig {
 	t := &Twig{
-		Muxer: NewToyMux(),
+		Debug: false,
 	}
-	t.Logger = newLog(os.Stdout, "twig-log-")
-	t.HttpErrorHandler = t.DefaultHttpErrorHandler
 	t.pool.New = func() interface{} {
 		return t.newCtx(nil, nil)
 	}
-
+	t.WithServant(NewClassicServer(DefaultAddress)).
+		WithHttpErrorHandler(DefaultHttpErrorHandler).
+		WithLogger(newLog(os.Stdout, "twig-log-")).
+		WithMux(NewToyMux())
 	return t
 }
 
-func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) C {
-	return &ctx{
-		req:     r,
-		resp:    NewResponseWarp(w),
-		t:       t,
-		store:   make(H),
-		pvalues: make([]string, MaxParam),
-		handler: NotFoundHandler,
-	}
+func (t *Twig) WithLogger(l Logger) *Twig {
+	t.Logger = l
+	return t
 }
 
-func (t *Twig) DefaultHttpErrorHandler(err error, c C) {
-
-	var code int = http.StatusInternalServerError
-	var msg interface{}
-
-	if e, ok := err.(*HttpError); ok {
-		code = e.Code
-		msg = e.Msg
-
-		if e.Internal != nil {
-			err = fmt.Errorf("%v, %v", err, e.Internal)
-		}
-	} else {
-		msg = http.StatusText(code)
-	}
-
-	if m, ok := msg.(string); ok {
-		msg = map[string]string{"msg": m}
-	}
-
-	if !c.Resp().Committed {
-		if c.Req().Method == http.MethodHead {
-			err = c.NoContent(code)
-		} else {
-			err = c.Json(code, msg)
-		}
-		if err != nil {
-			t.Logger.Println(err)
-		}
-	}
+func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
+	t.HttpErrorHandler = eh
+	return t
 }
 
 func (t *Twig) Pre(m ...MiddlewareFunc) *Twig {
@@ -132,4 +99,15 @@ func (t *Twig) Start() error {
 
 func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Servant.Shutdown(ctx)
+}
+
+func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) C {
+	return &ctx{
+		req:     r,
+		resp:    NewResponseWarp(w),
+		t:       t,
+		store:   make(H),
+		pvalues: make([]string, MaxParam),
+		handler: NotFoundHandler,
+	}
 }
