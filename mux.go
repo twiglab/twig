@@ -10,6 +10,8 @@ Twig 使用Muxer接口的Lookup方法完成对Context的装配工作
 */
 type Muxer interface {
 	Lookup(*http.Request, MContext)
+
+	Attacher
 }
 
 /*
@@ -159,6 +161,8 @@ type RedixTreeMux struct {
 	tree            *node
 	mid             []MiddlewareFunc
 	NotFoundHandler HandlerFunc
+
+	t *Twig
 }
 
 func NewRedixTreeMux() *RedixTreeMux {
@@ -168,6 +172,10 @@ func NewRedixTreeMux() *RedixTreeMux {
 		},
 		NotFoundHandler: NotFoundHandler,
 	}
+}
+
+func (r *RedixTreeMux) Attach(t *Twig) {
+	r.t = t
 }
 
 func (r *RedixTreeMux) Use(m ...MiddlewareFunc) {

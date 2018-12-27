@@ -24,16 +24,24 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
-type ToyMux struct{}
+func HelloTwigHandler(c C) error {
+	return c.String(http.StatusOK, "Hello Twig!")
+}
+
+type ToyMux struct {
+	t *Twig
+}
 
 func NewToyMux() *ToyMux {
 	return new(ToyMux)
 }
 
+func (m *ToyMux) Attach(t *Twig) {
+	m.t = t
+}
+
 func (m *ToyMux) Lookup(r *http.Request, c MContext) {
-	c.SetHandler(func(c C) error {
-		return c.String(http.StatusOK, "Hello Twig!")
-	})
+	c.SetHandler(HelloTwigHandler)
 }
 
 type Group struct {

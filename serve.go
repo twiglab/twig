@@ -11,25 +11,17 @@ const (
 	DefaultAddress = ":4321"
 )
 
-type Starter interface {
-	Start() error
-}
-type Shutdowner interface {
-	Shutdown(context.Context) error
-}
-
-type Server interface {
-	Starter
-	Shutdowner
-}
-
 type Servant interface {
-	Attach(http.Handler)
-	Server
+	Start() error
+	Shutdown(context.Context) error
+
+	Attacher
 }
 
 type ClassicServer struct {
 	*http.Server
+	t       *Twig
+	address string
 }
 
 func NewClassicServer(addr string) *ClassicServer {
@@ -43,16 +35,13 @@ func NewClassicServer(addr string) *ClassicServer {
 			ErrorLog:       log.New(os.Stderr, "twig-server-log-", log.LstdFlags|log.Llongfile),
 			MaxHeaderBytes: defaultHeaderBytes,
 		},
+		address: addr,
 	}
 }
 
-func (s *ClassicServer) Attach(h http.Handler) {
-	s.Handler = h
-}
-
-func (s *ClassicServer) Address(addr string) *ClassicServer {
-	s.Addr = addr
-	return s
+func (s *ClassicServer) Attach(t *Twig) {
+	s.Handler = t
+	s.t = t
 }
 
 func (s *ClassicServer) Start() error {

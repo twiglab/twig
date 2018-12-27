@@ -7,12 +7,16 @@ import (
 	"sync"
 )
 
-type HttpErrorHandler func(error, C)
 type H map[string]interface{}
+
+type Attacher interface {
+	Attach(*Twig)
+}
 
 type Identifier interface {
 	Name() string
 	Type() string
+	Desc() string
 }
 
 type Twig struct {
@@ -66,6 +70,7 @@ func (t *Twig) Use(m ...MiddlewareFunc) *Twig {
 
 func (t *Twig) WithMux(m Muxer) *Twig {
 	t.Muxer = m
+	m.Attach(t)
 	return t
 }
 

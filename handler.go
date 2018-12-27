@@ -4,6 +4,8 @@ import (
 	"net/http"
 )
 
+type HttpErrorHandler func(error, C)
+
 type HandlerFunc func(C) error
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
 
