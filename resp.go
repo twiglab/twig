@@ -6,6 +6,12 @@ import (
 	"net/http"
 )
 
+/*
+包装http.ResponseWrite
+提供以下增强：
+1, Hijack功能
+2, 通过Committed防止在输出先于header
+*/
 type ResponseWarp struct {
 	before    []func()
 	after     []func()
@@ -39,6 +45,9 @@ func (r *ResponseWarp) After(fn func()) {
 	r.after = append(r.after, fn)
 }
 
+/*
+设置header时查是否已经输出内容
+*/
 func (r *ResponseWarp) WriteHeader(code int) {
 	if r.Committed {
 		return
@@ -51,6 +60,9 @@ func (r *ResponseWarp) WriteHeader(code int) {
 	r.Committed = true
 }
 
+/*
+输出时候检查是否设置Header
+*/
 func (r *ResponseWarp) Write(b []byte) (n int, err error) {
 	if !r.Committed {
 		r.WriteHeader(http.StatusOK)
