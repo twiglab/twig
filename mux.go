@@ -8,7 +8,7 @@ import (
 Muxer 接口
 */
 type Muxer interface {
-	Lookup(string, string, *http.Request, C)
+	Lookup(string, string, *http.Request, Ctx)
 	Attacher
 }
 
@@ -310,7 +310,7 @@ func (r *RedixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath 
 	}
 }
 
-func (r *RedixTreeMux) Lookup(method, path string, req *http.Request, ctx C) {
+func (r *RedixTreeMux) Lookup(method, path string, req *http.Request, ctx Ctx) {
 	ctx.SetPath(path)
 	cn := r.tree // Current node as root
 

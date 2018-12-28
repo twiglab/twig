@@ -4,9 +4,9 @@ import (
 	"net/http"
 )
 
-type HttpErrorHandler func(error, C)
+type HttpErrorHandler func(error, Ctx)
 
-type HandlerFunc func(C) error
+type HandlerFunc func(Ctx) error
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
 
 func NopMiddleware(h HandlerFunc) HandlerFunc {
@@ -14,7 +14,7 @@ func NopMiddleware(h HandlerFunc) HandlerFunc {
 }
 
 func WrapHttpHandler(h http.Handler) HandlerFunc {
-	return func(c C) error {
+	return func(c Ctx) error {
 		h.ServeHTTP(c.Resp(), c.Req())
 		return nil
 	}
@@ -22,7 +22,7 @@ func WrapHttpHandler(h http.Handler) HandlerFunc {
 
 func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
-		return func(c C) (err error) {
+		return func(c Ctx) (err error) {
 			m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				c.SetReq(r)
 				err = next(c)

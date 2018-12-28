@@ -24,7 +24,7 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
-func HelloTwig(c C) error {
+func HelloTwig(c Ctx) error {
 	return c.String(http.StatusOK, "Hello Twig!")
 }
 
@@ -40,7 +40,7 @@ func (m *ToyMux) Attach(t *Twig) {
 	m.t = t
 }
 
-func (m *ToyMux) Lookup(method, path string, r *http.Request, c C) {
+func (m *ToyMux) Lookup(method, path string, r *http.Request, c Ctx) {
 	c.SetHandler(HelloTwig)
 }
 

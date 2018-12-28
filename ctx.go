@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type C interface {
+type Ctx interface {
 	Req() *http.Request
 	Resp() *ResponseWarp
 
@@ -37,10 +37,13 @@ type C interface {
 	Get(string) interface{}
 	Set(string, interface{})
 
-	Json(int, interface{}) error
-	JsonBlob(int, []byte) error
-	Jsonp(int, string, interface{}) error
-	JsonpBlob(int, string, []byte) error
+	JSON(int, interface{}) error
+	JSONBlob(int, []byte) error
+	JSONP(int, string, interface{}) error
+	JSONPBlob(int, string, []byte) error
+
+	HTMLBlob(int, []byte) error
+	HTML(int, string) error
 
 	Blob(int, string, []byte) error
 	Stream(int, string, io.Reader) error
@@ -229,28 +232,28 @@ func (c *ctx) Cookies() []*http.Cookie {
 	return c.req.Cookies()
 }
 
-func (c *ctx) Json(code int, val interface{}) error {
+func (c *ctx) JSON(code int, val interface{}) error {
 	bs, err := json.Marshal(val)
 	if err != nil {
 		return err
 	}
 
-	return c.JsonBlob(code, bs)
+	return c.JSONBlob(code, bs)
 }
 
-func (c *ctx) JsonBlob(code int, bs []byte) error {
+func (c *ctx) JSONBlob(code int, bs []byte) error {
 	return c.Blob(code, MIMEApplicationJSONCharsetUTF8, bs)
 }
 
-func (c *ctx) Jsonp(code int, callback string, val interface{}) error {
+func (c *ctx) JSONP(code int, callback string, val interface{}) error {
 	bs, err := json.Marshal(val)
 	if err != nil {
 		return err
 	}
-	return c.JsonpBlob(code, callback, bs)
+	return c.JSONPBlob(code, callback, bs)
 }
 
-func (c *ctx) JsonpBlob(code int, callback string, b []byte) (err error) {
+func (c *ctx) JSONPBlob(code int, callback string, b []byte) (err error) {
 	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
 	c.resp.WriteHeader(code)
 	if _, err = c.resp.Write([]byte(callback + "(")); err != nil {
@@ -268,6 +271,14 @@ func (c *ctx) Blob(code int, contentType string, bs []byte) (err error) {
 	c.resp.WriteHeader(code)
 	_, err = c.resp.Write(bs)
 	return
+}
+
+func (c *ctx) HTMLBlob(code int, bs []byte) error {
+	return c.Blob(code, MIMETextHTMLCharsetUTF8, bs)
+}
+
+func (c *ctx) HTML(code int, html string) error {
+	return c.HTMLBlob(code, []byte(html))
 }
 
 func (c *ctx) Stream(code int, contentType string, r io.Reader) (err error) {

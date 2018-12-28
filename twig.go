@@ -84,7 +84,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := t.pool.Get().(*ctx)
 	c.Reset(w, r)
 
-	h := Enhance(func(ctx C) error {
+	h := Enhance(func(ctx Ctx) error {
 		t.Muxer.Lookup(r.Method, GetReqPath(r), r, c)
 		handler := Enhance(c.Handler(), t.mid)
 		return handler(c)
@@ -106,7 +106,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Servant.Shutdown(ctx)
 }
 
-func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) C {
+func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) Ctx {
 	return &ctx{
 		req:     r,
 		resp:    NewResponseWarp(w),
@@ -117,11 +117,11 @@ func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) C {
 	}
 }
 
-func (t *Twig) AcquireCtx() C {
+func (t *Twig) AcquireCtx() Ctx {
 	c := t.pool.Get().(*ctx)
 	return c
 }
 
-func (t *Twig) ReleaseCtx(c C) {
+func (t *Twig) ReleaseCtx(c Ctx) {
 	t.pool.Put(c)
 }
