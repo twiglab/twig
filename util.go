@@ -50,3 +50,15 @@ type Group struct {
 func NewGroup() *Group {
 	return nil
 }
+
+func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
+	if m == nil {
+		return handler
+	}
+
+	h := handler
+	for i := len(m) - 1; i >= 0; i-- {
+		h = m[i](h)
+	}
+	return h
+}

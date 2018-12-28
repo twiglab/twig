@@ -1,6 +1,7 @@
 package twig
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -32,14 +33,53 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	}
 }
 
-func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
-	if m == nil {
-		return handler
+/*
+	NotFoundHandler 全局404处理方法， 如果需要修改
+	twig.NotFoundHandler = func (c twig.C) {
+			...
+	}
+*/
+func NotFoundHandler(c Ctx) error {
+	return ErrNotFound
+}
+
+/*
+	MethodNotAllowedHandler 全局405处理方法
+*/
+func MethodNotAllowedHandler(c Ctx) error {
+	return ErrMethodNotAllowed
+}
+
+/*
+默认的错误处理
+*/
+func DefaultHttpErrorHandler(err error, c Ctx) {
+	var code int = http.StatusInternalServerError
+	var msg interface{}
+
+	if e, ok := err.(*HttpError); ok {
+		code = e.Code
+		msg = e.Msg
+
+		if e.Internal != nil {
+			err = fmt.Errorf("%v, %v", err, e.Internal)
+		}
+	} else {
+		msg = http.StatusText(code)
 	}
 
-	h := handler
-	for i := len(m) - 1; i >= 0; i-- {
-		h = m[i](h)
+	if m, ok := msg.(string); ok {
+		msg = map[string]string{"msg": m}
 	}
-	return h
+
+	if !c.Resp().Committed {
+		if c.Req().Method == http.MethodHead {
+			err = c.NoContent(code)
+		} else {
+			err = c.JSON(code, msg)
+		}
+		if err != nil {
+			c.Logger().Println(err)
+		}
+	}
 }
