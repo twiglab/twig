@@ -6,11 +6,9 @@ import (
 
 /*
 Muxer 接口
-Twig 使用Muxer接口的Lookup方法完成对Context的装配工作
 */
 type Muxer interface {
-	Lookup(*http.Request, MContext)
-
+	Lookup(string, string, *http.Request, C)
 	Attacher
 }
 
@@ -312,10 +310,7 @@ func (r *RedixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath 
 	}
 }
 
-func (r *RedixTreeMux) Lookup(req *http.Request, ctx MContext) {
-	path := GetReqPath(req)
-	method := req.Method
-
+func (r *RedixTreeMux) Lookup(method, path string, req *http.Request, ctx C) {
 	ctx.SetPath(path)
 	cn := r.tree // Current node as root
 

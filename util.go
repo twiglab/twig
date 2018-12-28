@@ -24,7 +24,7 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
-func HelloTwigHandler(c C) error {
+func HelloTwig(c C) error {
 	return c.String(http.StatusOK, "Hello Twig!")
 }
 
@@ -40,8 +40,8 @@ func (m *ToyMux) Attach(t *Twig) {
 	m.t = t
 }
 
-func (m *ToyMux) Lookup(r *http.Request, c MContext) {
-	c.SetHandler(HelloTwigHandler)
+func (m *ToyMux) Lookup(method, path string, r *http.Request, c C) {
+	c.SetHandler(HelloTwig)
 }
 
 type Group struct {
@@ -49,12 +49,4 @@ type Group struct {
 
 func NewGroup() *Group {
 	return nil
-}
-
-type MutiMux map[string]Muxer
-
-func (m MutiMux) Lookup(r *http.Request, mc MContext) {
-	s := r.Header.Get("")
-	mux := m[s]
-	mux.Lookup(r, mc)
 }

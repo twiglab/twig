@@ -85,7 +85,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Reset(w, r)
 
 	h := Enhance(func(ctx C) error {
-		t.Muxer.Lookup(r, c)
+		t.Muxer.Lookup(r.Method, GetReqPath(r), r, c)
 		handler := Enhance(c.Handler(), t.mid)
 		return handler(c)
 	}, t.pre)
@@ -115,4 +115,13 @@ func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) C {
 		pvalues: make([]string, MaxParam),
 		handler: NotFoundHandler,
 	}
+}
+
+func (t *Twig) AcquireCtx() C {
+	c := t.pool.Get().(*ctx)
+	return c
+}
+
+func (t *Twig) ReleaseCtx(c C) {
+	t.pool.Put(c)
 }
