@@ -21,6 +21,13 @@ func WrapHttpHandler(h http.Handler) HandlerFunc {
 	}
 }
 
+func WrapHttpHandlerFunc(h http.HandlerFunc) HandlerFunc {
+	return func(c Ctx) error {
+		h.ServeHTTP(c.Resp(), c.Req())
+		return nil
+	}
+}
+
 func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
 		return func(c Ctx) (err error) {

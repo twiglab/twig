@@ -2,6 +2,7 @@ package twig
 
 import (
 	"net/http"
+	"net/http/pprof"
 	"reflect"
 	"runtime"
 )
@@ -44,13 +45,6 @@ func (m *ToyMux) Lookup(method, path string, r *http.Request, c Ctx) {
 	c.SetHandler(HelloTwig)
 }
 
-type Group struct {
-}
-
-func NewGroup() *Group {
-	return nil
-}
-
 func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {
 		return handler
@@ -61,4 +55,11 @@ func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 		h = m[i](h)
 	}
 	return h
+
 }
+
+var PprofIndex = WrapHttpHandlerFunc(pprof.Index)
+var PprofCmdLine = WrapHttpHandlerFunc(pprof.Cmdline)
+var PprofProfile = WrapHttpHandlerFunc(pprof.Profile)
+var PprofSymbol = WrapHttpHandlerFunc(pprof.Symbol)
+var PprofTrace = WrapHttpHandlerFunc(pprof.Trace)

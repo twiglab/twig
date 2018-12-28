@@ -3,6 +3,7 @@ package twig
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -53,6 +54,7 @@ type Ctx interface {
 	Stream(int, string, io.Reader) error
 
 	String(int, string) error
+	Stringf(int, string, ...interface{}) error
 
 	Cookie(string) (*http.Cookie, error)
 	SetCookie(*http.Cookie)
@@ -312,6 +314,13 @@ func (c *ctx) Stream(code int, contentType string, r io.Reader) (err error) {
 
 func (c *ctx) String(code int, str string) error {
 	return c.Blob(code, MIMETextPlainCharsetUTF8, []byte(str))
+}
+
+func (c *ctx) Stringf(code int, str string, v ...interface{}) error {
+	c.writeContentType(MIMETextPlainCharsetUTF8)
+	c.resp.WriteHeader(code)
+	_, err := fmt.Fprintf(c.resp, str, v)
+	return err
 }
 
 func (c *ctx) Get(key string) interface{} {
