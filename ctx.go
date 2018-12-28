@@ -2,6 +2,7 @@ package twig
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"net"
 	"net/http"
@@ -44,6 +45,9 @@ type Ctx interface {
 
 	HTMLBlob(int, []byte) error
 	HTML(int, string) error
+
+	XML(int, interface{}) error
+	XMLBlob(int, []byte) error
 
 	Blob(int, string, []byte) error
 	Stream(int, string, io.Reader) error
@@ -279,6 +283,24 @@ func (c *ctx) HTMLBlob(code int, bs []byte) error {
 
 func (c *ctx) HTML(code int, html string) error {
 	return c.HTMLBlob(code, []byte(html))
+}
+
+func (c *ctx) XML(code int, i interface{}) (err error) {
+	b, err := xml.Marshal(i)
+	if err != nil {
+		return
+	}
+	return c.XMLBlob(code, b)
+}
+
+func (c *ctx) XMLBlob(code int, b []byte) (err error) {
+	c.writeContentType(MIMEApplicationXMLCharsetUTF8)
+	c.resp.WriteHeader(code)
+	if _, err = c.resp.Write([]byte(xml.Header)); err != nil {
+		return
+	}
+	_, err = c.resp.Write(b)
+	return
 }
 
 func (c *ctx) Stream(code int, contentType string, r io.Reader) (err error) {

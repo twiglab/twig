@@ -24,7 +24,7 @@ func RecoverWithConfig(config RecoverConfig) twig.MiddlewareFunc {
 	}
 
 	return func(next twig.HandlerFunc) twig.HandlerFunc {
-		return func(c twig.C) error {
+		return func(c twig.Ctx) error {
 			if config.Skipper(c) {
 				return next(c)
 			}
