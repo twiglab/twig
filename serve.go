@@ -24,7 +24,7 @@ type DefaultServer struct {
 	address string
 }
 
-func NewClassicServer(addr string) *DefaultServer {
+func NewDefaultServer(addr string) *DefaultServer {
 	address := addr
 	if addr == "" {
 		address = DefaultAddress

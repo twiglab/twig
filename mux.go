@@ -9,7 +9,7 @@ Muxer 接口
 */
 type Muxer interface {
 	Lookup(string, string, *http.Request, Ctx)
-	Add(string, string, HandlerFunc, ...MiddlewareFunc)
+	//	Add(string, string, HandlerFunc, ...MiddlewareFunc)
 
 	Attacher
 }
