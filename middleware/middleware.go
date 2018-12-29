@@ -9,5 +9,5 @@ func DefaultSkipper(_ twig.Ctx) bool {
 }
 
 func Suggest() []twig.MiddlewareFunc {
-	return []twig.MiddlewareFunc{}
+	return []twig.MiddlewareFunc{Recover()}
 }

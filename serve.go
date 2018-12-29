@@ -18,18 +18,18 @@ type Servant interface {
 	Attacher
 }
 
-type ClassicServer struct {
+type DefaultServer struct {
 	*http.Server
 	t       *Twig
 	address string
 }
 
-func NewClassicServer(addr string) *ClassicServer {
+func NewClassicServer(addr string) *DefaultServer {
 	address := addr
 	if addr == "" {
 		address = DefaultAddress
 	}
-	return &ClassicServer{
+	return &DefaultServer{
 		Server: &http.Server{
 			Addr:           address,
 			ErrorLog:       log.New(os.Stderr, "twig-server-log-", log.LstdFlags|log.Llongfile),
@@ -39,20 +39,15 @@ func NewClassicServer(addr string) *ClassicServer {
 	}
 }
 
-func (s *ClassicServer) Attach(t *Twig) {
+func (s *DefaultServer) Attach(t *Twig) {
 	s.Handler = t
 	s.t = t
 }
 
-func (s *ClassicServer) Start() error {
-	go func() {
-		if err := s.ListenAndServe(); err != nil {
-			s.Server.ErrorLog.Println(err)
-		}
-	}()
-	return nil
+func (s *DefaultServer) Start() error {
+	return s.ListenAndServe()
 }
 
-func (s *ClassicServer) Shutdown(ctx context.Context) error {
+func (s *DefaultServer) Shutdown(ctx context.Context) error {
 	return s.Server.Shutdown(ctx)
 }

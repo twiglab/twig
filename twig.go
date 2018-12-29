@@ -41,7 +41,7 @@ func TODO() *Twig {
 	t.pool.New = func() interface{} {
 		return t.newCtx(nil, nil)
 	}
-	t.WithServant(NewClassicServer(DefaultAddress)).
+	t.WithServant(NewDefaultServer(DefaultAddress)).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMux(NewToyMux())
