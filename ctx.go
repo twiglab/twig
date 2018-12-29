@@ -20,8 +20,6 @@ type Ctx interface {
 	IsTls() bool
 	IsWebSocket() bool
 
-	//IsAJAX() bool
-
 	Scheme() string
 
 	RealIP() string
@@ -42,6 +40,7 @@ type Ctx interface {
 	JSON(int, interface{}) error
 	JSONBlob(int, []byte) error
 	JSONP(int, string, interface{}) error
+	//JSONS(int, string, interface{}) error
 	JSONPBlob(int, string, []byte) error
 
 	HTMLBlob(int, []byte) error
