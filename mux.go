@@ -9,8 +9,7 @@ Muxer 接口
 */
 type Muxer interface {
 	Lookup(string, string, *http.Request, Ctx)
-	//	Add(string, string, HandlerFunc, ...MiddlewareFunc)
-
+	Add(string, string, HandlerFunc, ...MiddlewareFunc) *Route
 	Attacher
 }
 
@@ -166,6 +165,8 @@ type RadixTreeMux struct {
 	NotFoundHandler HandlerFunc
 
 	t *Twig
+
+	routes map[string]*Route
 }
 
 func NewRadixTreeMux() *RadixTreeMux {
@@ -174,6 +175,7 @@ func NewRadixTreeMux() *RadixTreeMux {
 			methodHandler: new(methodHandler),
 		},
 		NotFoundHandler: NotFoundHandler, //路由级别404
+		routes:          make(map[string]*Route),
 	}
 }
 
@@ -185,7 +187,7 @@ func (r *RadixTreeMux) Use(m ...MiddlewareFunc) {
 	r.mid = append(r.mid, m...)
 }
 
-func (r *RadixTreeMux) Add(method, path string, handler HandlerFunc, m ...MiddlewareFunc) {
+func (r *RadixTreeMux) Add(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
 	if path == "" {
 		panic("twig: path cannot be empty")
 	}
@@ -214,18 +216,30 @@ func (r *RadixTreeMux) Add(method, path string, handler HandlerFunc, m ...Middle
 
 			if i == l { // 到结尾了，肯定是带参数，但不以/结束的，例如 /:id 这种路由
 				r.insert(method, path[:i], h, pkind, ppath, pnames) //构建一个参数节点，结束
-				return
+				return r.addRoute(method, path, handler)
 			}
 			r.insert(method, path[:i], nil, pkind, "", nil) // 还没结算
 		} else if path[i] == '*' { // 通配符(*)处理, 后面不用在扫描了
 			r.insert(method, path[:i], nil, skind, "", nil)
 			pnames = append(pnames, "*") // 通配符的参数名称就是 *
 			r.insert(method, path[:i+1], h, akind, ppath, pnames)
-			return
+			return r.addRoute(method, path, handler)
 		}
 	}
 
 	r.insert(method, path, h, skind, ppath, pnames) // 整个路由都没有参数，就是一个普通的节点
+
+	return r.addRoute(method, path, handler)
+}
+
+func (r *RadixTreeMux) addRoute(method, path string, handler HandlerFunc) *Route {
+	route := &Route{
+		Method: method,
+		Path:   path,
+		Name:   HandlerName(handler),
+	}
+	r.routes[method+path] = route
+	return route
 }
 
 func (r *RadixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath string, pnames []string) {

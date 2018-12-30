@@ -93,7 +93,7 @@ type ctx struct {
 
 	t *Twig
 
-	store H
+	store M
 }
 
 func (c *ctx) Twig() *Twig {
@@ -328,7 +328,7 @@ func (c *ctx) Get(key string) interface{} {
 
 func (c *ctx) Set(key string, val interface{}) {
 	if c.store == nil {
-		c.store = make(H)
+		c.store = make(M)
 	}
 	c.store[key] = val
 }

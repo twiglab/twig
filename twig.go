@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type H map[string]interface{}
+type M map[string]interface{}
 
 type Attacher interface {
 	Attach(*Twig)
@@ -39,12 +39,31 @@ func TODO() *Twig {
 		Debug: false,
 	}
 	t.pool.New = func() interface{} {
-		return t.newCtx(nil, nil)
+		return t.NewCtx(nil, nil)
 	}
 	t.WithServant(NewDefaultServer(DefaultAddress)).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
-		WithMux(NewToyMux())
+		WithMux(NewRadixTreeMux())
+	return t
+}
+
+func (t *Twig) Done() *Twig {
+	if t.HttpErrorHandler == nil {
+		panic("Twig: HttpErrorHandler is nil!")
+	}
+
+	if t.Logger == nil {
+		panic("Twig: Logger is nil!")
+	}
+
+	if t.Muxer == nil {
+		panic("Twig: Muxer is nil!")
+	}
+
+	if t.Servant == nil {
+		panic("Twig: Servant is nil!")
+	}
 	return t
 }
 
@@ -106,12 +125,12 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Servant.Shutdown(ctx)
 }
 
-func (t *Twig) newCtx(w http.ResponseWriter, r *http.Request) Ctx {
+func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
 	return &ctx{
 		req:     r,
 		resp:    NewResponseWarp(w),
 		t:       t,
-		store:   make(H),
+		store:   make(M),
 		pvalues: make([]string, MaxParam),
 		handler: NotFoundHandler,
 	}
@@ -124,4 +143,36 @@ func (t *Twig) AcquireCtx() Ctx {
 
 func (t *Twig) ReleaseCtx(c Ctx) {
 	t.pool.Put(c)
+}
+
+func (t *Twig) add(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.Muxer.Add(method, path, handler, m...)
+}
+
+func (t *Twig) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(GET, path, handler, m...)
+}
+
+func (t *Twig) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(POST, path, handler, m...)
+}
+
+func (t *Twig) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(DELETE, path, handler, m...)
+}
+
+func (t *Twig) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(PUT, path, handler, m...)
+}
+
+func (t *Twig) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(PATCH, path, handler, m...)
+}
+
+func (t *Twig) Head(path string, h HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(HEAD, path, h, m...)
+}
+
+func (t *Twig) Options(path string, h HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(OPTIONS, path, h, m...)
 }

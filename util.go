@@ -5,6 +5,7 @@ import (
 	"net/http/pprof"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 func GetReqPath(r *http.Request) string {
@@ -29,22 +30,6 @@ func HelloTwig(c Ctx) error {
 	return c.String(http.StatusOK, "Hello Twig!")
 }
 
-type ToyMux struct {
-	t *Twig
-}
-
-func NewToyMux() *ToyMux {
-	return new(ToyMux)
-}
-
-func (m *ToyMux) Attach(t *Twig) {
-	m.t = t
-}
-
-func (m *ToyMux) Lookup(method, path string, r *http.Request, c Ctx) {
-	c.SetHandler(HelloTwig)
-}
-
 func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {
 		return handler
@@ -63,3 +48,15 @@ var PprofCmdLine = WrapHttpHandlerFunc(pprof.Cmdline)
 var PprofProfile = WrapHttpHandlerFunc(pprof.Profile)
 var PprofSymbol = WrapHttpHandlerFunc(pprof.Symbol)
 var PprofTrace = WrapHttpHandlerFunc(pprof.Trace)
+
+type Route struct {
+	Name   string
+	Path   string
+	Method string
+}
+
+const XMLHttpRequest = "XMLHttpRequest"
+
+func IsAJAX(r *http.Request) bool {
+	return strings.Contains(r.Header.Get(HeaderXRequestedWith), XMLHttpRequest)
+}
