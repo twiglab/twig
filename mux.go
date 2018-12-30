@@ -15,10 +15,10 @@ type Muxer interface {
 }
 
 /*
-RedixTreeMux 基于Redix树实现路由
+RadixTreeMux 基于Radix树实现路由
 */
 
-type kind uint8 // Redix Tree的节点类型
+type kind uint8 // Radix Tree的节点类型
 type children []*node
 
 // methodHandler 位于节点中，用于存放HandlerFunc
@@ -44,7 +44,7 @@ const (
 
 type node struct {
 	kind          kind           // 节点的类型
-	label         byte           // 对应的Redix的label ， 就是当前前缀的第一个字符(参考RedixTree实现)
+	label         byte           // 对应的Radix的label ， 就是当前前缀的第一个字符(参考RadixTree实现)
 	prefix        string         // 节点的前缀
 	parent        *node          //上级节点
 	children      children       // 子节点
@@ -55,8 +55,6 @@ type node struct {
 
 func newNode(t kind, pre string, p *node, c children, mh *methodHandler, ppath string, pnames []string) *node {
 	return &node{
-		kind:          t,
-		label:         pre[0],
 		prefix:        pre,
 		parent:        p,
 		children:      c,
@@ -161,8 +159,8 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 	return NotFoundHandler
 }
 
-// RedixTree 路由实现
-type RedixTreeMux struct {
+// RadixTree 路由实现
+type RadixTreeMux struct {
 	tree            *node
 	mid             []MiddlewareFunc //路由级中间件
 	NotFoundHandler HandlerFunc
@@ -170,8 +168,8 @@ type RedixTreeMux struct {
 	t *Twig
 }
 
-func NewRedixTreeMux() *RedixTreeMux {
-	return &RedixTreeMux{
+func NewRadixTreeMux() *RadixTreeMux {
+	return &RadixTreeMux{
 		tree: &node{
 			methodHandler: new(methodHandler),
 		},
@@ -179,15 +177,15 @@ func NewRedixTreeMux() *RedixTreeMux {
 	}
 }
 
-func (r *RedixTreeMux) Attach(t *Twig) {
+func (r *RadixTreeMux) Attach(t *Twig) {
 	r.t = t
 }
 
-func (r *RedixTreeMux) Use(m ...MiddlewareFunc) {
+func (r *RadixTreeMux) Use(m ...MiddlewareFunc) {
 	r.mid = append(r.mid, m...)
 }
 
-func (r *RedixTreeMux) Add(method, path string, handler HandlerFunc, m ...MiddlewareFunc) {
+func (r *RadixTreeMux) Add(method, path string, handler HandlerFunc, m ...MiddlewareFunc) {
 	if path == "" {
 		panic("twig: path cannot be empty")
 	}
@@ -200,7 +198,7 @@ func (r *RedixTreeMux) Add(method, path string, handler HandlerFunc, m ...Middle
 	pnames := []string{} // 参数列表
 	ppath := path        // path
 
-	// 一次扫描，处理参数列表，生成RedixTree
+	// 一次扫描，处理参数列表，生成RadixTree
 	for i, l := 0, len(path); i < l; i++ {
 		if path[i] == ':' { //参数处理
 			j := i + 1
@@ -230,7 +228,7 @@ func (r *RedixTreeMux) Add(method, path string, handler HandlerFunc, m ...Middle
 	r.insert(method, path, h, skind, ppath, pnames) // 整个路由都没有参数，就是一个普通的节点
 }
 
-func (r *RedixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath string, pnames []string) {
+func (r *RadixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath string, pnames []string) {
 	// 调整url最大参数
 	// 优化: MaxParam为*整个*服务器中最大的路由参数个数，后续分配Ctx时，按照最大参数分配参数值
 	l := len(pnames)
@@ -320,7 +318,7 @@ func (r *RedixTreeMux) insert(method, path string, h HandlerFunc, t kind, ppath 
 	}
 }
 
-func (r *RedixTreeMux) Lookup(method, path string, req *http.Request, ctx Ctx) {
+func (r *RadixTreeMux) Lookup(method, path string, req *http.Request, ctx Ctx) {
 	ctx.SetPath(path)
 	cn := r.tree // Current node as root
 
