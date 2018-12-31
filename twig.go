@@ -34,6 +34,7 @@ type Twig struct {
 	pool sync.Pool
 }
 
+// 创建默认的Twig
 func TODO() *Twig {
 	t := &Twig{
 		Debug: false,
@@ -41,7 +42,7 @@ func TODO() *Twig {
 	t.pool.New = func() interface{} {
 		return t.NewCtx(nil, nil)
 	}
-	t.WithServer(NewServnat(DefaultAddress)).
+	t.WithServer(DefaultServnat()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTreeMux())
@@ -59,11 +60,13 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 	return t
 }
 
+// Pre 中间件支持， 注意Pre中间件工作在路由之前
 func (t *Twig) Pre(m ...MiddlewareFunc) *Twig {
 	t.pre = append(t.pre, m...)
 	return t
 }
 
+// Twig级中间件支持
 func (t *Twig) Use(m ...MiddlewareFunc) *Twig {
 	t.mid = append(t.mid, m...)
 	return t
@@ -81,21 +84,22 @@ func (t *Twig) WithServer(s Server) *Twig {
 	return t
 }
 
+// 实现http.Handler
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := t.pool.Get().(*ctx)
-	c.Reset(w, r)
+	c := t.pool.Get().(*ctx) // pool 中获取Ctx
+	c.Reset(w, r)            // 重置Ctx，放入当前的Resp和Req , Ctx是可以重用的
 
-	h := Enhance(func(ctx Ctx) error {
-		t.Muxer.Lookup(r.Method, GetReqPath(r), r, c)
-		handler := Enhance(c.Handler(), t.mid)
+	h := Enhance(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
+		t.Muxer.Lookup(r.Method, GetReqPath(r), r, c) // 路由对当前Ctx实现装配
+		handler := Enhance(c.Handler(), t.mid)        // 处理Twig级中间件
 		return handler(c)
 	}, t.pre)
 
-	if err := h(c); err != nil {
+	if err := h(c); err != nil { // 链式调用，如果出错，交给Twig的HttpErrorHandler处理
 		t.HttpErrorHandler(err, c)
 	}
 
-	t.pool.Put(c)
+	t.pool.Put(c) // 交还Ctx，后续复用，Http处理过程结束
 }
 
 func (t *Twig) Start() error {
@@ -107,6 +111,8 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Server.Shutdown(ctx)
 }
 
+// 面向第三方路由，提供Ctx的创建功能
+// 注意：Twig 不管理第三方路由使用的Ctx，只创建，不回收
 func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
 	return &ctx{
 		req:     r,

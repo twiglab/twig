@@ -7,10 +7,6 @@ import (
 	"os"
 )
 
-const (
-	DefaultAddress = ":4321"
-)
-
 type Server interface {
 	Start() error
 	Shutdown(context.Context) error
@@ -23,14 +19,10 @@ type Servant struct {
 	t      *Twig
 }
 
-func NewServnat(addr string) *Servant {
-	address := addr
-	if addr == "" {
-		address = DefaultAddress
-	}
+func DefaultServnat() *Servant {
 	return &Servant{
 		Server: &http.Server{
-			Addr:           address,
+			Addr:           DefaultAddress,
 			ErrorLog:       log.New(os.Stderr, "twig-server-log-", log.LstdFlags|log.Llongfile),
 			MaxHeaderBytes: defaultHeaderBytes,
 		},
