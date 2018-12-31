@@ -11,43 +11,46 @@ const (
 	DefaultAddress = ":4321"
 )
 
-type Servant interface {
+type Server interface {
 	Start() error
 	Shutdown(context.Context) error
 
 	Attacher
 }
 
-type DefaultServer struct {
-	*http.Server
-	t       *Twig
-	address string
+type Servant struct {
+	Server *http.Server
+	t      *Twig
 }
 
-func NewDefaultServer(addr string) *DefaultServer {
+func NewServnat(addr string) *Servant {
 	address := addr
 	if addr == "" {
 		address = DefaultAddress
 	}
-	return &DefaultServer{
+	return &Servant{
 		Server: &http.Server{
 			Addr:           address,
 			ErrorLog:       log.New(os.Stderr, "twig-server-log-", log.LstdFlags|log.Llongfile),
 			MaxHeaderBytes: defaultHeaderBytes,
 		},
-		address: addr,
 	}
 }
 
-func (s *DefaultServer) Attach(t *Twig) {
-	s.Handler = t
+func (s *Servant) Attach(t *Twig) {
+	s.Server.Handler = t
 	s.t = t
 }
-
-func (s *DefaultServer) Start() error {
-	return s.ListenAndServe()
+func (s *Servant) Shutdown(ctx context.Context) error {
+	return s.Server.Shutdown(ctx)
 }
 
-func (s *DefaultServer) Shutdown(ctx context.Context) error {
-	return s.Server.Shutdown(ctx)
+func (s *Servant) Start() error {
+	return s.Server.ListenAndServe()
+}
+
+func HttpServerWrap(s *http.Server) Server {
+	return &Servant{
+		Server: s,
+	}
 }

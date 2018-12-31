@@ -8,6 +8,6 @@ func DefaultSkipper(_ twig.Ctx) bool {
 	return false
 }
 
-func Suggest() []twig.MiddlewareFunc {
+func SuggestApi() []twig.MiddlewareFunc {
 	return []twig.MiddlewareFunc{Recover()}
 }

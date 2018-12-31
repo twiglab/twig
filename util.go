@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// 获取当前请求路径
 func GetReqPath(r *http.Request) string {
 	path := r.URL.RawPath
 
@@ -18,6 +19,7 @@ func GetReqPath(r *http.Request) string {
 	return path
 }
 
+// 获取handler的名称
 func HandlerName(h HandlerFunc) string {
 	t := reflect.ValueOf(h).Type()
 	if t.Kind() == reflect.Func {
@@ -26,10 +28,12 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
+// HelloTwig! ~~
 func HelloTwig(c Ctx) error {
 	return c.String(http.StatusOK, "Hello Twig!")
 }
 
+// 包装handler
 func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {
 		return handler
@@ -55,8 +59,14 @@ type Route struct {
 	Method string
 }
 
-const XMLHttpRequest = "XMLHttpRequest"
-
+// 判断当前请求是否为AJAX
 func IsAJAX(r *http.Request) bool {
 	return strings.Contains(r.Header.Get(HeaderXRequestedWith), XMLHttpRequest)
+}
+
+// 设置关联关系
+func attach(i interface{}, t *Twig) {
+	if attacher, ok := i.(Attacher); ok {
+		attacher.Attach(t)
+	}
 }

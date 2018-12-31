@@ -133,3 +133,5 @@ const (
 	indexPage          = "index.html"
 	defaultHeaderBytes = 1 << 20 // 512k
 )
+
+const XMLHttpRequest = "XMLHttpRequest"

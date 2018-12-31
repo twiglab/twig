@@ -1,7 +1,6 @@
 package twig
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -9,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/twiglab/twig/internal/json"
 )
 
 type Ctx interface {

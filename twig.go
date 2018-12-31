@@ -22,9 +22,9 @@ type Identifier interface {
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
-	Logger  Logger
-	Muxer   Muxer
-	Servant Servant
+	Logger Logger
+	Muxer  Muxer
+	Server Server
 
 	Debug bool
 
@@ -41,34 +41,16 @@ func TODO() *Twig {
 	t.pool.New = func() interface{} {
 		return t.NewCtx(nil, nil)
 	}
-	t.WithServant(NewDefaultServer(DefaultAddress)).
+	t.WithServer(NewServnat(DefaultAddress)).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
-		WithMux(NewRadixTreeMux())
-	return t
-}
-
-func (t *Twig) Done() *Twig {
-	if t.HttpErrorHandler == nil {
-		panic("Twig: HttpErrorHandler is nil!")
-	}
-
-	if t.Logger == nil {
-		panic("Twig: Logger is nil!")
-	}
-
-	if t.Muxer == nil {
-		panic("Twig: Muxer is nil!")
-	}
-
-	if t.Servant == nil {
-		panic("Twig: Servant is nil!")
-	}
+		WithMuxer(NewRadixTreeMux())
 	return t
 }
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
+	attach(l, t)
 	return t
 }
 
@@ -87,14 +69,14 @@ func (t *Twig) Use(m ...MiddlewareFunc) *Twig {
 	return t
 }
 
-func (t *Twig) WithMux(m Muxer) *Twig {
+func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
-	m.Attach(t)
+	attach(m, t)
 	return t
 }
 
-func (t *Twig) WithServant(s Servant) *Twig {
-	t.Servant = s
+func (t *Twig) WithServer(s Server) *Twig {
+	t.Server = s
 	s.Attach(t)
 	return t
 }
@@ -118,11 +100,11 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (t *Twig) Start() error {
 	t.Logger.Println(banner)
-	return t.Servant.Start()
+	return t.Server.Start()
 }
 
 func (t *Twig) Shutdown(ctx context.Context) error {
-	return t.Servant.Shutdown(ctx)
+	return t.Server.Shutdown(ctx)
 }
 
 func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
@@ -169,10 +151,14 @@ func (t *Twig) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Rou
 	return t.add(PATCH, path, handler, m...)
 }
 
-func (t *Twig) Head(path string, h HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(HEAD, path, h, m...)
+func (t *Twig) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(HEAD, path, handler, m...)
 }
 
-func (t *Twig) Options(path string, h HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(OPTIONS, path, h, m...)
+func (t *Twig) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(OPTIONS, path, handler, m...)
+}
+
+func (t *Twig) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
+	return t.add(TRACE, path, handler, m...)
 }

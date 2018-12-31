@@ -10,7 +10,6 @@ Muxer 接口
 type Muxer interface {
 	Lookup(string, string, *http.Request, Ctx)
 	Add(string, string, HandlerFunc, ...MiddlewareFunc) *Route
-	Attacher
 }
 
 /*
@@ -67,7 +66,7 @@ func (n *node) addChild(c *node) {
 	n.children = append(n.children, c)
 }
 
-// findChild 从子节点中查找符合一起的接单
+// findChild 从子节点中查找符合条件的节点
 func (n *node) findChild(l byte, t kind) *node {
 	for _, c := range n.children {
 		if c.label == l && c.kind == t {
