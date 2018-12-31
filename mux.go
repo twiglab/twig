@@ -163,8 +163,6 @@ type RadixTreeMux struct {
 	mid             []MiddlewareFunc //路由级中间件
 	NotFoundHandler HandlerFunc
 
-	t *Twig
-
 	routes map[string]*Route
 }
 
@@ -176,10 +174,6 @@ func NewRadixTreeMux() *RadixTreeMux {
 		NotFoundHandler: NotFoundHandler, //路由级别404
 		routes:          make(map[string]*Route),
 	}
-}
-
-func (r *RadixTreeMux) Attach(t *Twig) {
-	r.t = t
 }
 
 func (r *RadixTreeMux) Use(m ...MiddlewareFunc) {

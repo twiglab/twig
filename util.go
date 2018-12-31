@@ -2,7 +2,6 @@ package twig
 
 import (
 	"net/http"
-	"net/http/pprof"
 	"reflect"
 	"runtime"
 	"strings"
@@ -30,7 +29,7 @@ func HandlerName(h HandlerFunc) string {
 
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
-	return c.String(http.StatusOK, "Hello Twig!")
+	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
 }
 
 // 包装handler
@@ -47,12 +46,6 @@ func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 
 }
 
-var PprofIndex = WrapHttpHandlerFunc(pprof.Index)
-var PprofCmdLine = WrapHttpHandlerFunc(pprof.Cmdline)
-var PprofProfile = WrapHttpHandlerFunc(pprof.Profile)
-var PprofSymbol = WrapHttpHandlerFunc(pprof.Symbol)
-var PprofTrace = WrapHttpHandlerFunc(pprof.Trace)
-
 type Route struct {
 	Name   string
 	Path   string
@@ -65,8 +58,19 @@ func IsAJAX(r *http.Request) bool {
 }
 
 // 设置关联关系
-func attach(i interface{}, t *Twig) {
-	if attacher, ok := i.(Attacher); ok {
-		attacher.Attach(t)
+func assoc(i interface{}, t *Twig) {
+	if linker, ok := i.(Assocer); ok {
+		linker.Assoc(t)
 	}
+}
+
+func GetPartner(id string, c Ctx) Partner {
+	t := c.Twig()
+	if p, ok := t.Partner(id); ok {
+		return p
+	}
+
+	c.Logger().Panicf("Twig: Partner (%s) is not exist!", id)
+
+	return nil
 }

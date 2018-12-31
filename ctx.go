@@ -316,11 +316,8 @@ func (c *ctx) String(code int, str string) error {
 	return c.Blob(code, MIMETextPlainCharsetUTF8, []byte(str))
 }
 
-func (c *ctx) Stringf(code int, str string, v ...interface{}) error {
-	c.writeContentType(MIMETextPlainCharsetUTF8)
-	c.resp.WriteHeader(code)
-	_, err := fmt.Fprintf(c.resp, str, v)
-	return err
+func (c *ctx) Stringf(code int, format string, v ...interface{}) error {
+	return c.String(code, fmt.Sprintf(format, v...))
 }
 
 func (c *ctx) Get(key string) interface{} {

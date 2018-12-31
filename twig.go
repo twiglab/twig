@@ -9,14 +9,14 @@ import (
 
 type M map[string]interface{}
 
-type Attacher interface {
-	Attach(*Twig)
+type Assocer interface {
+	Assoc(*Twig)
 }
 
-type Identifier interface {
+type Partner interface {
+	ID() string
 	Name() string
 	Type() string
-	Desc() string
 }
 
 type Twig struct {
@@ -32,6 +32,8 @@ type Twig struct {
 	mid []MiddlewareFunc
 
 	pool sync.Pool
+
+	parteners map[string]Partner
 }
 
 // 创建默认的Twig
@@ -51,7 +53,7 @@ func TODO() *Twig {
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	attach(l, t)
+	assoc(l, t)
 	return t
 }
 
@@ -74,14 +76,27 @@ func (t *Twig) Use(m ...MiddlewareFunc) *Twig {
 
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
-	attach(m, t)
+	assoc(m, t)
 	return t
 }
 
 func (t *Twig) WithServer(s Server) *Twig {
 	t.Server = s
-	s.Attach(t)
+	s.Assoc(t)
 	return t
+}
+
+func (t *Twig) AddPartner(ps ...Partner) *Twig {
+	for _, p := range ps {
+		assoc(p, t)
+		t.parteners[p.ID()] = p
+	}
+	return t
+}
+
+func (t *Twig) Partner(id string) (p Partner, ok bool) {
+	p, ok = t.parteners[id]
+	return
 }
 
 // 实现http.Handler
