@@ -14,7 +14,8 @@ type Resetter interface {
 // 返回false 等待处理下一个信号
 type SignalFunc func(os.Signal) bool
 
-func Exit() SignalFunc {
+// 正常退出，不做任何处理
+func Quit() SignalFunc {
 	return func(_ os.Signal) bool {
 		return true
 	}
