@@ -42,7 +42,7 @@ type Twig struct {
 	name string
 }
 
-// 创建默认的Twig
+// 创建空的Twig
 func TODO() *Twig {
 	t := &Twig{
 		Debug: false,
@@ -56,6 +56,11 @@ func TODO() *Twig {
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())
 	return t
+}
+
+// 创建默认的Twig
+func Default() *Twig {
+	return TODO()
 }
 
 func (t *Twig) WithLogger(l Logger) *Twig {

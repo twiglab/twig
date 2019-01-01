@@ -55,6 +55,8 @@ type Ctx interface {
 	String(int, string) error
 	Stringf(int, string, ...interface{}) error
 
+	URL(string, ...interface{}) string
+
 	Cookie(string) (*http.Cookie, error)
 	SetCookie(*http.Cookie)
 	Cookies() []*http.Cookie
@@ -82,6 +84,8 @@ type MCtx interface {
 	SetParamValues([]string)
 	ParamNames() []string
 	ParamValues() []string
+
+	SetRoutes(map[string]Route)
 }
 
 type ctx struct {
@@ -99,6 +103,8 @@ type ctx struct {
 	t *Twig
 
 	store M
+
+	routes map[string]Route
 }
 
 func (c *ctx) Twig() *Twig {
@@ -389,4 +395,19 @@ func (c *ctx) Reset(w http.ResponseWriter, r *http.Request) {
 	c.store = nil
 	c.path = ""
 	c.pnames = nil
+
+	c.routes = nil
+}
+
+func (c *ctx) SetRoutes(rs map[string]Route) {
+	c.routes = rs
+}
+
+func (c *ctx) URL(name string, params ...interface{}) string {
+	for _, route := range c.routes {
+		if route.Name() == name {
+			return Reverse(route.Path(), params...)
+		}
+	}
+	return ""
 }

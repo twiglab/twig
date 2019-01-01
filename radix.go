@@ -427,6 +427,8 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 
 func (r *RadixTree) Lookup(method, path string, req *http.Request, c MCtx) {
 	r.Find(method, path, c)
+	c.SetRoutes(r.routes)
+
 	h := c.Handler()
 	c.SetHandler(Enhance(h, r.m))
 }
