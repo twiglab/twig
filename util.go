@@ -98,3 +98,81 @@ func GetPartner(id string, c Ctx) Partner {
 type Mounter interface {
 	Mount(Register)
 }
+
+type Config struct {
+	R Register
+	N Nameder
+}
+
+func Cfg() *Config {
+	return &Config{}
+}
+
+func (c *Config) WithRegister(r Register) *Config {
+	c.R = r
+	return c
+}
+
+func (c *Config) WithNameder(n Nameder) *Config {
+	c.N = n
+	return c
+}
+
+func (c *Config) With(r Register, n Nameder) *Config {
+	c.R = r
+	c.N = n
+	return c
+}
+
+func (c *Config) SetName(name string) *Config {
+	c.N.SetName(name)
+	return c
+}
+
+func (c *Config) Use(m ...MiddlewareFunc) *Config {
+	c.R.Use(m...)
+	return c
+}
+
+func (c *Config) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	c.N = c.R.AddHandler(method, path, handler, m...)
+	return c
+}
+
+func (c *Config) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(GET, path, handler, m...)
+}
+
+func (c *Config) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(POST, path, handler, m...)
+}
+
+func (c *Config) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(DELETE, path, handler, m...)
+}
+
+func (c *Config) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(PUT, path, handler, m...)
+}
+
+func (c *Config) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(PATCH, path, handler, m...)
+}
+
+func (c *Config) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(HEAD, path, handler, m...)
+}
+
+func (c *Config) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(OPTIONS, path, handler, m...)
+}
+
+func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	return c.AddHandler(TRACE, path, handler, m...)
+}
+
+func (c *Config) Done() {
+	c.R = nil
+	c.N = nil
+	c = nil
+}

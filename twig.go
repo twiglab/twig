@@ -2,6 +2,7 @@ package twig
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -24,11 +25,7 @@ type Partner interface {
 	Type() string
 }
 
-type Route interface {
-	Name() string
-	ID() string
-	Method() string
-	Path() string
+type Nameder interface {
 	SetName(string)
 }
 
@@ -47,12 +44,15 @@ type Twig struct {
 	pool sync.Pool
 
 	parteners map[string]Partner
+
+	name string
 }
 
 // 创建默认的Twig
 func TODO() *Twig {
 	t := &Twig{
 		Debug: false,
+		name:  "main",
 	}
 	t.pool.New = func() interface{} {
 		return t.NewCtx(nil, nil)
@@ -176,34 +176,22 @@ func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...Middlew
 	return t.Muxer.AddHandler(method, path, handler, m...)
 }
 
-func (t *Twig) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(GET, path, handler, m...)
+func (t *Twig) SetName(name string) {
+	t.name = name
 }
 
-func (t *Twig) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(POST, path, handler, m...)
+func (t *Twig) Name() string {
+	return t.name
 }
 
-func (t *Twig) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(DELETE, path, handler, m...)
+func (t *Twig) ID() string {
+	return fmt.Sprintf("Twig@%s", t.name)
 }
 
-func (t *Twig) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(PUT, path, handler, m...)
+func (t *Twig) Type() string {
+	return "webserver"
 }
 
-func (t *Twig) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(PATCH, path, handler, m...)
-}
-
-func (t *Twig) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(HEAD, path, handler, m...)
-}
-
-func (t *Twig) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(OPTIONS, path, handler, m...)
-}
-
-func (t *Twig) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.AddHandler(TRACE, path, handler, m...)
+func (t *Twig) Config() *Config {
+	return Cfg().With(t, t)
 }
