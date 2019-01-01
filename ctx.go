@@ -68,6 +68,24 @@ type Ctx interface {
 
 	Logger() Logger
 
+	/*
+		SetHandler(HandlerFunc)
+		Handler() HandlerFunc
+
+		SetPath(string)
+		Reset(http.ResponseWriter, *http.Request)
+
+		SetParamNames([]string)
+		SetParamValues([]string)
+		ParamNames() []string
+		ParamValues() []string
+	*/
+}
+
+type MCtx interface {
+	Twig() *Twig
+	Logger() Logger
+
 	SetHandler(HandlerFunc)
 	Handler() HandlerFunc
 

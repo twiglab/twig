@@ -287,7 +287,7 @@ func (r *RadixTree) insert(method, path string, h HandlerFunc, t kind, ppath str
 	}
 }
 
-func (r *RadixTree) Find(method, path string, ctx Ctx) {
+func (r *RadixTree) Find(method, path string, ctx MCtx) {
 	ctx.SetPath(path)
 	cn := r.tree // Current node as root
 
@@ -425,7 +425,7 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 	r.m = append(r.m, m...)
 }
 
-func (r *RadixTree) Lookup(method, path string, req *http.Request, c Ctx) {
+func (r *RadixTree) Lookup(method, path string, req *http.Request, c MCtx) {
 	r.Find(method, path, c)
 	h := c.Handler()
 	c.SetHandler(Enhance(h, r.m))
