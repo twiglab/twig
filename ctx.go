@@ -41,7 +41,6 @@ type Ctx interface {
 	JSON(int, interface{}) error
 	JSONBlob(int, []byte) error
 	JSONP(int, string, interface{}) error
-	//JSONS(int, string, interface{}) error
 	JSONPBlob(int, string, []byte) error
 
 	HTMLBlob(int, []byte) error
@@ -67,19 +66,6 @@ type Ctx interface {
 	Twig() *Twig
 
 	Logger() Logger
-
-	/*
-		SetHandler(HandlerFunc)
-		Handler() HandlerFunc
-
-		SetPath(string)
-		Reset(http.ResponseWriter, *http.Request)
-
-		SetParamNames([]string)
-		SetParamValues([]string)
-		ParamNames() []string
-		ParamValues() []string
-	*/
 }
 
 type MCtx interface {

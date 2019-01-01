@@ -40,6 +40,20 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	}
 }
 
+// 中间件包装器
+func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
+	if m == nil {
+		return handler
+	}
+
+	h := handler
+	for i := len(m) - 1; i >= 0; i-- {
+		h = m[i](h)
+	}
+	return h
+
+}
+
 /*
 NotFoundHandler 全局404处理方法， 如果需要修改
 */

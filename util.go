@@ -32,20 +32,6 @@ func HelloTwig(c Ctx) error {
 	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
 }
 
-// 包装handler
-func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
-	if m == nil {
-		return handler
-	}
-
-	h := handler
-	for i := len(m) - 1; i >= 0; i-- {
-		h = m[i](h)
-	}
-	return h
-
-}
-
 type RouteDesc struct {
 	N string
 	P string
@@ -82,21 +68,6 @@ func attach(i interface{}, t *Twig) {
 	if linker, ok := i.(Attacher); ok {
 		linker.Attach(t)
 	}
-}
-
-func GetPartner(id string, c Ctx) Partner {
-	t := c.Twig()
-	if p, ok := t.Partner(id); ok {
-		return p
-	}
-
-	c.Logger().Panicf("Twig: Partner (%s) is not exist!", id)
-
-	return nil
-}
-
-type Mounter interface {
-	Mount(Register)
 }
 
 type Config struct {

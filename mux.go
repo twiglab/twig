@@ -27,3 +27,8 @@ type Route interface {
 	Path() string
 	Nameder
 }
+
+// Mouter接口用于模块化设置路由
+type Mounter interface {
+	Mount(Register)
+}

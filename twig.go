@@ -19,12 +19,6 @@ type Attacher interface {
 	Attach(*Twig)
 }
 
-type Partner interface {
-	ID() string
-	Name() string
-	Type() string
-}
-
 type Nameder interface {
 	SetName(string)
 }
