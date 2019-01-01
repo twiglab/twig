@@ -29,7 +29,7 @@ func HandlerName(h HandlerFunc) string {
 
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
-	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
+	return c.String(http.StatusOK, "Hello !")
 }
 
 // 包装handler
@@ -46,10 +46,30 @@ func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 
 }
 
-type Route struct {
-	Name   string
-	Path   string
-	Method string
+type RouteDesc struct {
+	N string
+	P string
+	M string
+}
+
+func (r *RouteDesc) ID() string {
+	return r.M + r.P
+}
+
+func (r *RouteDesc) Name() string {
+	return r.N
+}
+
+func (r *RouteDesc) Method() string {
+	return r.M
+}
+
+func (r *RouteDesc) Path() string {
+	return r.P
+}
+
+func (r *RouteDesc) SetName(name string) {
+	r.N = name
 }
 
 // 判断当前请求是否为AJAX
@@ -58,9 +78,9 @@ func IsAJAX(r *http.Request) bool {
 }
 
 // 设置关联关系
-func assoc(i interface{}, t *Twig) {
-	if linker, ok := i.(Assocer); ok {
-		linker.Assoc(t)
+func attach(i interface{}, t *Twig) {
+	if linker, ok := i.(Attacher); ok {
+		linker.Attach(t)
 	}
 }
 
@@ -73,4 +93,8 @@ func GetPartner(id string, c Ctx) Partner {
 	c.Logger().Panicf("Twig: Partner (%s) is not exist!", id)
 
 	return nil
+}
+
+type Mounter interface {
+	Mount(Register)
 }

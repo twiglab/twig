@@ -9,14 +9,22 @@ import (
 
 type M map[string]interface{}
 
-type Assocer interface {
-	Assoc(*Twig)
+type Attacher interface {
+	Attach(*Twig)
 }
 
 type Partner interface {
 	ID() string
 	Name() string
 	Type() string
+}
+
+type Route interface {
+	Name() string
+	ID() string
+	Method() string
+	Path() string
+	SetName(string)
 }
 
 type Twig struct {
@@ -47,13 +55,13 @@ func TODO() *Twig {
 	t.WithServer(DefaultServnat()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
-		WithMuxer(NewRadixTreeMux())
+		WithMuxer(NewRadixTree())
 	return t
 }
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	assoc(l, t)
+	attach(l, t)
 	return t
 }
 
@@ -63,32 +71,30 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 }
 
 // Pre 中间件支持， 注意Pre中间件工作在路由之前
-func (t *Twig) Pre(m ...MiddlewareFunc) *Twig {
+func (t *Twig) Pre(m ...MiddlewareFunc) {
 	t.pre = append(t.pre, m...)
-	return t
 }
 
 // Twig级中间件支持
-func (t *Twig) Use(m ...MiddlewareFunc) *Twig {
+func (t *Twig) Use(m ...MiddlewareFunc) {
 	t.mid = append(t.mid, m...)
-	return t
 }
 
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
-	assoc(m, t)
+	attach(m, t)
 	return t
 }
 
 func (t *Twig) WithServer(s Server) *Twig {
 	t.Server = s
-	s.Assoc(t)
+	s.Attach(t)
 	return t
 }
 
 func (t *Twig) AddPartner(ps ...Partner) *Twig {
 	for _, p := range ps {
-		assoc(p, t)
+		attach(p, t)
 		t.parteners[p.ID()] = p
 	}
 	return t
@@ -148,38 +154,38 @@ func (t *Twig) ReleaseCtx(c Ctx) {
 	t.pool.Put(c)
 }
 
-func (t *Twig) add(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.Muxer.Add(method, path, handler, m...)
+func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.Muxer.AddHandler(method, path, handler, m...)
 }
 
-func (t *Twig) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(GET, path, handler, m...)
+func (t *Twig) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(GET, path, handler, m...)
 }
 
-func (t *Twig) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(POST, path, handler, m...)
+func (t *Twig) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(POST, path, handler, m...)
 }
 
-func (t *Twig) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(DELETE, path, handler, m...)
+func (t *Twig) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(DELETE, path, handler, m...)
 }
 
-func (t *Twig) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(PUT, path, handler, m...)
+func (t *Twig) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(PUT, path, handler, m...)
 }
 
-func (t *Twig) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(PATCH, path, handler, m...)
+func (t *Twig) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(PATCH, path, handler, m...)
 }
 
-func (t *Twig) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(HEAD, path, handler, m...)
+func (t *Twig) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(HEAD, path, handler, m...)
 }
 
-func (t *Twig) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(OPTIONS, path, handler, m...)
+func (t *Twig) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(OPTIONS, path, handler, m...)
 }
 
-func (t *Twig) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Route {
-	return t.add(TRACE, path, handler, m...)
+func (t *Twig) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
+	return t.AddHandler(TRACE, path, handler, m...)
 }

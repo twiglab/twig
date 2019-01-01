@@ -41,10 +41,7 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 }
 
 /*
-	NotFoundHandler 全局404处理方法， 如果需要修改
-	twig.NotFoundHandler = func (c twig.C) {
-			...
-	}
+NotFoundHandler 全局404处理方法， 如果需要修改
 */
 func NotFoundHandler(c Ctx) error {
 	return ErrNotFound

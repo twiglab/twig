@@ -11,7 +11,7 @@ type Server interface {
 	Start() error
 	Shutdown(context.Context) error
 
-	Assocer
+	Attacher
 }
 
 type Servant struct {
@@ -29,7 +29,7 @@ func DefaultServnat() *Servant {
 	}
 }
 
-func (s *Servant) Assoc(t *Twig) {
+func (s *Servant) Attach(t *Twig) {
 	s.Server.Handler = t
 	s.t = t
 }
