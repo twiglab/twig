@@ -25,7 +25,7 @@ type Route interface {
 	ID() string
 	Method() string
 	Path() string
-	Nameder
+	Namer
 }
 
 // Mouter接口用于模块化设置路由

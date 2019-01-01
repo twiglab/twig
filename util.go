@@ -93,25 +93,17 @@ func attach(i interface{}, t *Twig) {
 
 type Config struct {
 	R Register
-	N Nameder
+	N Namer
 }
 
-func Cfg() *Config {
-	return &Config{}
+func Cfg(r Register) *Config {
+	return &Config{
+		R: r,
+		N: nil,
+	}
 }
 
-func (c *Config) WithRegister(r Register) *Config {
-	c.R = r
-	return c
-}
-
-func (c *Config) WithNameder(n Nameder) *Config {
-	c.N = n
-	return c
-}
-
-func (c *Config) With(r Register, n Nameder) *Config {
-	c.R = r
+func (c *Config) WithNamer(n Namer) *Config {
 	c.N = n
 	return c
 }

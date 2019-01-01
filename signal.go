@@ -5,10 +5,6 @@ import (
 	"os/signal"
 )
 
-type Resetter interface {
-	Reset()
-}
-
 // 信号处理函数
 // 返回true 退出
 // 返回false 等待处理下一个信号

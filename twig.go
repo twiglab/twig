@@ -19,8 +19,12 @@ type Attacher interface {
 	Attach(*Twig)
 }
 
-type Nameder interface {
+type Namer interface {
 	SetName(string)
+}
+
+type Reloader interface {
+	Reload() error
 }
 
 type Twig struct {
@@ -192,5 +196,5 @@ func (t *Twig) Type() string {
 }
 
 func (t *Twig) Config() *Config {
-	return Cfg().With(t, t)
+	return Cfg(t).WithNamer(t)
 }
