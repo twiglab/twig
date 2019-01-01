@@ -118,7 +118,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h := Enhance(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
 		t.Muxer.Lookup(r.Method, GetReqPath(r), r, c) // 路由对当前Ctx实现装配
 		handler := Enhance(c.Handler(), t.mid)        // 处理Twig级中间件
-		return handler(c)
+		return handler(ctx)
 	}, t.pre)
 
 	if err := h(c); err != nil { // 链式调用，如果出错，交给Twig的HttpErrorHandler处理
