@@ -35,8 +35,11 @@ func (s *Servant) Shutdown(ctx context.Context) error {
 	return s.Server.Shutdown(ctx)
 }
 
-func (s *Servant) Start() error {
-	return s.Server.ListenAndServe()
+func (s *Servant) Start() (err error) {
+	go func() {
+		err = s.Server.ListenAndServe()
+	}()
+	return
 }
 
 func HttpServerWrap(s *http.Server) Server {
