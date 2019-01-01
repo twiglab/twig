@@ -29,7 +29,7 @@ func HandlerName(h HandlerFunc) string {
 
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
-	return c.String(http.StatusOK, "Hello !")
+	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
 }
 
 // 包装handler

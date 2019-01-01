@@ -9,6 +9,11 @@ import (
 
 type M map[string]interface{}
 
+type Cycler interface {
+	Start() error
+	Shutdown(context.Context) error
+}
+
 type Attacher interface {
 	Attach(*Twig)
 }
@@ -125,10 +130,23 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (t *Twig) Start() error {
 	t.Logger.Println(banner)
+
+	for _, p := range t.parteners {
+		if cycler, ok := p.(Cycler); ok {
+			cycler.Start()
+		}
+	}
+
 	return t.Server.Start()
 }
 
 func (t *Twig) Shutdown(ctx context.Context) error {
+	for _, p := range t.parteners {
+		if cycler, ok := p.(Cycler); ok {
+			cycler.Shutdown(ctx)
+		}
+	}
+
 	return t.Server.Shutdown(ctx)
 }
 

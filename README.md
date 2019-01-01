@@ -1,2 +1,21 @@
 # twig
-twig is a simple web server （未发布状态），目前还不稳定，仅供开发使用
+twig is a simple web server （预览发布），API没有冻结，请注意
+
+## 简单使用
+
+```go
+package main
+
+import (
+    "github.com/twiglab/twig"
+    "github.com/twiglab/twig/middleware"
+)
+
+func main() {
+    api := twig.TODO()
+    api.Use(middleware.Recover())
+    api.Get("/hello", twig.HelloTwig)
+    api.Start()
+}
+
+```

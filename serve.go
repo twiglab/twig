@@ -8,9 +8,7 @@ import (
 )
 
 type Server interface {
-	Start() error
-	Shutdown(context.Context) error
-
+	Cycler
 	Attacher
 }
 
