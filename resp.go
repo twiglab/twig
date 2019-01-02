@@ -12,7 +12,7 @@ type RespCallBack func(http.ResponseWriter)
 // 包装http.ResponseWrite
 // 提供以下增强：
 // 1, Hijack功能
-// 2, 通过Committed防止在输出先于header
+// 2, 通过Committed防止输出先于header
 type ResponseWarp struct {
 	before    []RespCallBack
 	after     []RespCallBack
@@ -46,9 +46,7 @@ func (r *ResponseWarp) After(fn RespCallBack) {
 	r.after = append(r.after, fn)
 }
 
-/*
-设置header时查是否已经输出内容
-*/
+// 设置header时查是否已经输出内容
 func (r *ResponseWarp) WriteHeader(code int) {
 	if r.Committed {
 		return
@@ -61,9 +59,7 @@ func (r *ResponseWarp) WriteHeader(code int) {
 	r.Committed = true
 }
 
-/*
-输出时候检查是否设置Header
-*/
+// 输出时候检查是否设置Header
 func (r *ResponseWarp) Write(b []byte) (n int, err error) {
 	if !r.Committed {
 		r.WriteHeader(http.StatusOK)
@@ -76,6 +72,7 @@ func (r *ResponseWarp) Write(b []byte) (n int, err error) {
 	return
 }
 
+// Hijack Hijack 支持
 func (r *ResponseWarp) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return r.Writer.(http.Hijacker).Hijack()
 }

@@ -10,25 +10,28 @@ import (
 
 type M map[string]interface{}
 
+// Attacher 用于设置Twig和组件之间的联系
+type Attacher interface {
+	Attach(*Twig)
+}
+
+// Cycler 设置周期管理
 type Cycler interface {
 	Start() error
 	Shutdown(context.Context) error
-}
-
-type Attacher interface {
-	Attach(*Twig)
 }
 
 type Namer interface {
 	SetName(string)
 }
 
+// Twig
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
-	Logger Logger
-	Muxer  Muxer
-	Server Server
+	Logger Logger // Logger 组件负责日志输出
+	Muxer  Muxer  // Muxer 组件负责路由处理
+	Server Server // Server 负责Http请求处理
 
 	Debug bool
 

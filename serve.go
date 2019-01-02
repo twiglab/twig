@@ -7,11 +7,13 @@ import (
 	"os"
 )
 
+// Server 接口
 type Server interface {
 	Cycler
 	Attacher
 }
 
+// Servant 默认的Sever实现用于Http处理
 type Servant struct {
 	Server *http.Server
 	t      *Twig
