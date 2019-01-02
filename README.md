@@ -34,7 +34,7 @@ func main() {
 - Twig没有内置提供Render，或者模板输出功能，Twig专注api
 - Twig没有提供Binder功能，Twig认为绑定参数到对象是应用需要考虑的问题
 - Twig默认的Server不支持SSL，如何设计并提供好的Server是应用开发者考虑的问题（`实现Server接口，位于serve.go中`） 
-- Twig没有提供GET,POST,DELETE等路由方法，但Twig提供了Register和Mounter接口，方便用户分离路由配置工作
+- Twig没有提供GET,POST,DELETE等路由方法，但Twig提供了Register和Mounter接口，方便用户分离路由配置工作，并实现模块化配置
 
 Twig最大的特点是简洁，至此讲述的内容，已经足够让您运行并使用Twig。*祝您使用Twig愉快！*
 
