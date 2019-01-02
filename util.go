@@ -1,6 +1,8 @@
 package twig
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -24,6 +26,25 @@ func GetReqPath(r *http.Request) string {
 // 判断当前请求是否为AJAX
 func IsAJAX(r *http.Request) bool {
 	return strings.Contains(r.Header.Get(HeaderXRequestedWith), XMLHttpRequest)
+}
+
+//根据path和参数构建url
+func Reverse(path string, params ...interface{}) string {
+	uri := new(bytes.Buffer)
+	ln := len(params)
+	n := 0
+	for i, l := 0, len(path); i < l; i++ {
+		if path[i] == ':' && n < ln {
+			for ; i < l && path[i] != '/'; i++ {
+			}
+			uri.WriteString(fmt.Sprintf("%v", params[n]))
+			n++
+		}
+		if i < l {
+			uri.WriteByte(path[i])
+		}
+	}
+	return uri.String()
 }
 
 // 设置关联关系

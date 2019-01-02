@@ -1,5 +1,13 @@
+// RadixTree Twig中的默认路由
+// 参考Echo (https://echo.labstack.com) 中的路由实现
+// 做了注释和少量调整
+
 /*
-RadixTree 实现，参考Echo中的实现，并作了少量修改
+**********************
+向Echo开发团队致敬!
+向Echo开发者致敬!
+向Echo 致敬！
+**********************
 */
 
 package twig
@@ -436,7 +444,7 @@ func (r *RadixTree) Lookup(method, path string, req *http.Request, c MCtx) {
 func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Route {
 	handler := Enhance(h, m)
 	r.Add(method, path, handler)
-	rd := &RouteDesc{
+	rd := &NamedRoute{
 		M: method,
 		P: path,
 		N: HandlerName(h),

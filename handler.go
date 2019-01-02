@@ -1,8 +1,6 @@
 package twig
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -68,25 +66,6 @@ func HandlerName(h HandlerFunc) string {
 		return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
 	}
 	return t.String()
-}
-
-//根据path和参数构建url
-func Reverse(path string, params ...interface{}) string {
-	uri := new(bytes.Buffer)
-	ln := len(params)
-	n := 0
-	for i, l := 0, len(path); i < l; i++ {
-		if path[i] == ':' && n < ln {
-			for ; i < l && path[i] != '/'; i++ {
-			}
-			uri.WriteString(fmt.Sprintf("%v", params[n]))
-			n++
-		}
-		if i < l {
-			uri.WriteByte(path[i])
-		}
-	}
-	return uri.String()
 }
 
 // HelloTwig! ~~

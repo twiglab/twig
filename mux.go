@@ -30,28 +30,28 @@ type Route interface {
 	Namer
 }
 
-type RouteDesc struct {
+type NamedRoute struct {
 	N string
 	P string
 	M string
 }
 
-func (r *RouteDesc) ID() string {
+func (r *NamedRoute) ID() string {
 	return r.M + r.P
 }
 
-func (r *RouteDesc) Name() string {
+func (r *NamedRoute) Name() string {
 	return r.N
 }
 
-func (r *RouteDesc) Method() string {
+func (r *NamedRoute) Method() string {
 	return r.M
 }
 
-func (r *RouteDesc) Path() string {
+func (r *NamedRoute) Path() string {
 	return r.P
 }
 
-func (r *RouteDesc) SetName(name string) {
+func (r *NamedRoute) SetName(name string) {
 	r.N = name
 }
