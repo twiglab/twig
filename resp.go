@@ -6,15 +6,16 @@ import (
 	"net/http"
 )
 
-/*
-包装http.ResponseWrite
-提供以下增强：
-1, Hijack功能
-2, 通过Committed防止在输出先于header
-*/
+// RespCallBack ResponseWriter回调函数
+type RespCallBack func(http.ResponseWriter)
+
+// 包装http.ResponseWrite
+// 提供以下增强：
+// 1, Hijack功能
+// 2, 通过Committed防止在输出先于header
 type ResponseWarp struct {
-	before    []func()
-	after     []func()
+	before    []RespCallBack
+	after     []RespCallBack
 	Writer    http.ResponseWriter
 	Status    int
 	Len       int64
@@ -37,11 +38,11 @@ func (r *ResponseWarp) CloseNotify() <-chan bool {
 	return r.Writer.(http.CloseNotifier).CloseNotify()
 }
 
-func (r *ResponseWarp) Before(fn func()) {
+func (r *ResponseWarp) Before(fn RespCallBack) {
 	r.before = append(r.before, fn)
 }
 
-func (r *ResponseWarp) After(fn func()) {
+func (r *ResponseWarp) After(fn RespCallBack) {
 	r.after = append(r.after, fn)
 }
 
@@ -53,7 +54,7 @@ func (r *ResponseWarp) WriteHeader(code int) {
 		return
 	}
 	for _, fn := range r.before {
-		fn()
+		fn(r)
 	}
 	r.Status = code
 	r.Writer.WriteHeader(code)
@@ -70,7 +71,7 @@ func (r *ResponseWarp) Write(b []byte) (n int, err error) {
 	n, err = r.Writer.Write(b)
 	r.Len += int64(n)
 	for _, fn := range r.after {
-		fn()
+		fn(r)
 	}
 	return
 }
