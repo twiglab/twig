@@ -54,23 +54,17 @@ func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 
 }
 
-/*
-NotFoundHandler 全局404处理方法， 如果需要修改
-*/
+// NotFoundHandler 全局404处理方法， 如果需要修改
 func NotFoundHandler(c Ctx) error {
 	return ErrNotFound
 }
 
-/*
-	MethodNotAllowedHandler 全局405处理方法
-*/
+// MethodNotAllowedHandler 全局405处理方法
 func MethodNotAllowedHandler(c Ctx) error {
 	return ErrMethodNotAllowed
 }
 
-/*
-默认的错误处理
-*/
+// 默认的错误处理
 func DefaultHttpErrorHandler(err error, c Ctx) {
 	var code int = http.StatusInternalServerError
 	var msg interface{}
