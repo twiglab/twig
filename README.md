@@ -29,5 +29,8 @@ func main() {
 - twig.Config是Twig提供的配置工具（注意：在Twig的世界里，工具的定义为外围附属品，并不是Twig必须的一部分），Twig没有像别的webserver一样提供GET，POST等方法，所有的配置工作都通过Config完成
 - Twig要求所有的Server的实现必须是*非堵塞*的，Start方法将启动Twig，Twig提供了Signal组件用于堵塞应用，处理系统信号，完成和shell的交互
 
-至此讲述的内容，已经足够让您运行并使用Twig。祝您使用Twig愉快！
+Twig最大的特点是简洁，至此讲述的内容，已经足够让您运行并使用Twig。祝您使用Twig愉快！
 
+----
+
+## Twig的结构
