@@ -91,71 +91,71 @@ func attach(i interface{}, t *Twig) {
 	}
 }
 
-type Config struct {
+type Conf struct {
 	R Register
 	N Namer
 }
 
-func Cfg(r Register) *Config {
-	return &Config{
+func Config(r Register) *Conf {
+	return &Conf{
 		R: r,
 		N: nil,
 	}
 }
 
-func (c *Config) WithNamer(n Namer) *Config {
+func (c *Conf) WithNamer(n Namer) *Conf {
 	c.N = n
 	return c
 }
 
-func (c *Config) SetName(name string) *Config {
+func (c *Conf) SetName(name string) *Conf {
 	c.N.SetName(name)
 	return c
 }
 
-func (c *Config) Use(m ...MiddlewareFunc) *Config {
+func (c *Conf) Use(m ...MiddlewareFunc) *Conf {
 	c.R.Use(m...)
 	return c
 }
 
-func (c *Config) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	c.N = c.R.AddHandler(method, path, handler, m...)
 	return c
 }
 
-func (c *Config) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(GET, path, handler, m...)
 }
 
-func (c *Config) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(POST, path, handler, m...)
 }
 
-func (c *Config) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(DELETE, path, handler, m...)
 }
 
-func (c *Config) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(PUT, path, handler, m...)
 }
 
-func (c *Config) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(PATCH, path, handler, m...)
 }
 
-func (c *Config) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(HEAD, path, handler, m...)
 }
 
-func (c *Config) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(OPTIONS, path, handler, m...)
 }
 
-func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
-func (c *Config) Done() {
+func (c *Conf) Done() {
 	c.R = nil
 	c.N = nil
 	c = nil

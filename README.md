@@ -14,7 +14,7 @@ import (
 func main() {
 	api := twig.TODO()
 
-	twig.Cfg(api).
+	twig.Config(api).
 		Use(middleware.Recover()).
 		Get("/hello", twig.HelloTwig).
 		Done()

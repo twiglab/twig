@@ -195,6 +195,6 @@ func (t *Twig) Type() string {
 	return "webserver"
 }
 
-func (t *Twig) Config() *Config {
-	return Cfg(t).WithNamer(t)
+func (t *Twig) Config() *Conf {
+	return Config(t).WithNamer(t)
 }
