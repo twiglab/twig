@@ -5,6 +5,12 @@ import (
 	"os/signal"
 )
 
+// Reloader 描述一个可以被重新加载的对象
+// 在某些信号发生时候， 可以对Relaoder对象进行Reload操作，用于重新加载
+type Reloader interface {
+	Reload() error
+}
+
 // 信号处理函数
 // 返回true 退出
 // 返回false 等待处理下一个信号

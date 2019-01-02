@@ -12,6 +12,7 @@ import (
 	"github.com/twiglab/twig/internal/json"
 )
 
+// Ctx 接口，用于向Handler传递Twig上下文数据，并提供简化操作完成请求处理
 type Ctx interface {
 	Req() *http.Request
 	Resp() *ResponseWarp
@@ -70,6 +71,7 @@ type Ctx interface {
 	Logger() Logger
 }
 
+// MCtx 接口用于Twig内部管理，Twig受到请求后，通过MCtx和Muxer交互
 type MCtx interface {
 	Twig() *Twig
 	Logger() Logger

@@ -23,10 +23,6 @@ type Namer interface {
 	SetName(string)
 }
 
-type Reloader interface {
-	Reload() error
-}
-
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
