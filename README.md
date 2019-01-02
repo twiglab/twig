@@ -24,3 +24,4 @@ func main() {
 	twig.Signal(twig.Quit())
 }
 ```
+Twig的默认监听端口是4321, 可以通过twig.DefaultAddress全局变量修改(位于var.go中)，或者自定义自己的Server
