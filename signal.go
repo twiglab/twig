@@ -13,6 +13,7 @@ type Reloader interface {
 
 // Reload
 // bug: 无法处理所有信号(TODO)
+/*
 func Reload(r Reloader, sig ...os.Signal) {
 	return func(s os.Signal) bool {
 		for _, g := range sig {
@@ -25,6 +26,7 @@ func Reload(r Reloader, sig ...os.Signal) {
 		}
 	}
 }
+*/
 
 // 信号处理函数
 // 返回true 退出
