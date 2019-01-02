@@ -6,7 +6,7 @@ package twig
 
 import "net/http"
 
-type kind uint8
+type kind uint8 // 节点类型
 type children []*node
 
 type methodHandler struct {
@@ -23,9 +23,9 @@ type methodHandler struct {
 }
 
 const (
-	skind kind = iota
-	pkind
-	akind
+	skind kind = iota // 普通节点
+	pkind             // 参数节点 (:xx)
+	akind             // 通配节点(*)
 )
 
 type node struct {
