@@ -8,14 +8,8 @@ import (
 	"runtime"
 )
 
-type HttpErrorHandler func(error, Ctx)
-
 type HandlerFunc func(Ctx) error
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
-
-func NopMiddleware(h HandlerFunc) HandlerFunc {
-	return h
-}
 
 func WrapHttpHandler(h http.Handler) HandlerFunc {
 	return func(c Ctx) error {
@@ -67,38 +61,6 @@ func MethodNotAllowedHandler(c Ctx) error {
 	return ErrMethodNotAllowed
 }
 
-// 默认的错误处理
-func DefaultHttpErrorHandler(err error, c Ctx) {
-	var code int = http.StatusInternalServerError
-	var msg interface{}
-
-	if e, ok := err.(*HttpError); ok {
-		code = e.Code
-		msg = e.Msg
-
-		if e.Internal != nil {
-			err = fmt.Errorf("%v, %v", err, e.Internal)
-		}
-	} else {
-		msg = http.StatusText(code)
-	}
-
-	if m, ok := msg.(string); ok {
-		msg = map[string]string{"msg": m}
-	}
-
-	if !c.Resp().Committed {
-		if c.Req().Method == http.MethodHead {
-			err = c.NoContent(code)
-		} else {
-			err = c.JSON(code, msg)
-		}
-		if err != nil {
-			c.Logger().Println(err)
-		}
-	}
-}
-
 // 获取handler的名称
 func HandlerName(h HandlerFunc) string {
 	t := reflect.ValueOf(h).Type()
@@ -130,30 +92,4 @@ func Reverse(path string, params ...interface{}) string {
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
 	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
-}
-
-type RouteDesc struct {
-	N string
-	P string
-	M string
-}
-
-func (r *RouteDesc) ID() string {
-	return r.M + r.P
-}
-
-func (r *RouteDesc) Name() string {
-	return r.N
-}
-
-func (r *RouteDesc) Method() string {
-	return r.M
-}
-
-func (r *RouteDesc) Path() string {
-	return r.P
-}
-
-func (r *RouteDesc) SetName(name string) {
-	r.N = name
 }

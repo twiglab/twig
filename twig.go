@@ -2,7 +2,6 @@ package twig
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -22,6 +21,7 @@ type Cycler interface {
 }
 
 type Namer interface {
+	Name() string
 	SetName(string)
 }
 
@@ -156,7 +156,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 }
 
 // 面向第三方路由，提供Ctx的创建功能
-// 注意：Twig 不管理第三方路由使用的Ctx，只创建，不回收
+// 注意：Twig 不管理第三方路由使用的Ctx，只负责创建，不负责回收
 func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
 	return &ctx{
 		req:     r,
@@ -190,7 +190,7 @@ func (t *Twig) Name() string {
 }
 
 func (t *Twig) ID() string {
-	return fmt.Sprintf("Twig@%s", t.name)
+	return "Twig@" + t.name
 }
 
 func (t *Twig) Type() string {

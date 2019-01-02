@@ -14,5 +14,4 @@ type Plugin interface {
 func GetPlugin(id string, c Ctx) Plugin {
 	t := c.Twig()
 	return t.Plugin(id)
-
 }

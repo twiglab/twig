@@ -32,3 +32,37 @@ func (e *HttpError) SetInternal(err error) *HttpError {
 	e.Internal = err
 	return e
 }
+
+type HttpErrorHandler func(error, Ctx)
+
+// 默认的错误处理
+func DefaultHttpErrorHandler(err error, c Ctx) {
+	var code int = http.StatusInternalServerError
+	var msg interface{}
+
+	if e, ok := err.(*HttpError); ok {
+		code = e.Code
+		msg = e.Msg
+
+		if e.Internal != nil {
+			err = fmt.Errorf("%v, %v", err, e.Internal)
+		}
+	} else {
+		msg = http.StatusText(code)
+	}
+
+	if m, ok := msg.(string); ok {
+		msg = map[string]string{"msg": m}
+	}
+
+	if !c.Resp().Committed {
+		if c.Req().Method == http.MethodHead {
+			err = c.NoContent(code)
+		} else {
+			err = c.JSON(code, msg)
+		}
+		if err != nil {
+			c.Logger().Println(err)
+		}
+	}
+}

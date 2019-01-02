@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+// Mouter接口用于模块化设置路由
+type Mounter interface {
+	Mount(Register)
+}
+
 // 获取当前请求路径
 func GetReqPath(r *http.Request) string {
 	path := r.URL.RawPath
@@ -96,9 +101,4 @@ func (c *Conf) Done() {
 	c.R = nil
 	c.N = nil
 	c = nil
-}
-
-// Mouter接口用于模块化设置路由
-type Mounter interface {
-	Mount(Register)
 }
