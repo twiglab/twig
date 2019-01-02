@@ -1,18 +1,13 @@
 package twig
 
-type Partner interface {
+type Plugin interface {
 	ID() string
 	Name() string
 	Type() string
 }
 
-func GetPartner(id string, c Ctx) Partner {
+func GetPartner(id string, c Ctx) Plugin {
 	t := c.Twig()
-	if p, ok := t.Partner(id); ok {
-		return p
-	}
+	return t.Plugin(id)
 
-	c.Logger().Panicf("Twig: Partner (%s) is not exist!", id)
-
-	return nil
 }

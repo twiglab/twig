@@ -41,13 +41,18 @@ type Twig struct {
 
 	pool sync.Pool
 
-	parteners map[string]Partner
+	plugins map[string]Plugin
 
 	name string
 }
 
 // 创建空的Twig
 func TODO() *Twig {
+	return Default()
+}
+
+// 创建默认的Twig
+func Default() *Twig {
 	t := &Twig{
 		Debug: false,
 		name:  "main",
@@ -55,16 +60,14 @@ func TODO() *Twig {
 	t.pool.New = func() interface{} {
 		return t.NewCtx(nil, nil)
 	}
-	t.WithServer(DefaultServnat()).
+
+	t.
+		WithServer(DefaultServnat()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())
-	return t
-}
 
-// 创建默认的Twig
-func Default() *Twig {
-	return TODO()
+	return t
 }
 
 func (t *Twig) WithLogger(l Logger) *Twig {
@@ -76,16 +79,6 @@ func (t *Twig) WithLogger(l Logger) *Twig {
 func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 	t.HttpErrorHandler = eh
 	return t
-}
-
-// Pre 中间件支持， 注意Pre中间件工作在路由之前
-func (t *Twig) Pre(m ...MiddlewareFunc) {
-	t.pre = append(t.pre, m...)
-}
-
-// Twig级中间件支持
-func (t *Twig) Use(m ...MiddlewareFunc) {
-	t.mid = append(t.mid, m...)
 }
 
 func (t *Twig) WithMuxer(m Muxer) *Twig {
@@ -100,17 +93,27 @@ func (t *Twig) WithServer(s Server) *Twig {
 	return t
 }
 
-func (t *Twig) AddPartner(ps ...Partner) *Twig {
-	for _, p := range ps {
-		attach(p, t)
-		t.parteners[p.ID()] = p
-	}
-	return t
+// Pre 中间件支持， 注意Pre中间件工作在路由之前
+func (t *Twig) Pre(m ...MiddlewareFunc) {
+	t.pre = append(t.pre, m...)
 }
 
-func (t *Twig) Partner(id string) (p Partner, ok bool) {
-	p, ok = t.parteners[id]
-	return
+// Twig级中间件支持
+func (t *Twig) Use(m ...MiddlewareFunc) {
+	t.mid = append(t.mid, m...)
+}
+
+// Plugin支持
+func (t *Twig) AddPlugin(ps ...Plugin) {
+	for _, p := range ps {
+		attach(p, t)
+		t.plugins[p.ID()] = p
+	}
+}
+
+//获取Plugin
+func (t *Twig) Plugin(id string) Plugin {
+	return t.plugins[id]
 }
 
 // 实现http.Handler
@@ -134,7 +137,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (t *Twig) Start() error {
 	t.Logger.Println(banner)
 
-	for _, p := range t.parteners {
+	for _, p := range t.plugins {
 		if cycler, ok := p.(Cycler); ok {
 			cycler.Start()
 		}
@@ -144,7 +147,7 @@ func (t *Twig) Start() error {
 }
 
 func (t *Twig) Shutdown(ctx context.Context) error {
-	for _, p := range t.parteners {
+	for _, p := range t.plugins {
 		if cycler, ok := p.(Cycler); ok {
 			cycler.Shutdown(ctx)
 		}

@@ -86,8 +86,8 @@ func IsAJAX(r *http.Request) bool {
 
 // 设置关联关系
 func attach(i interface{}, t *Twig) {
-	if linker, ok := i.(Attacher); ok {
-		linker.Attach(t)
+	if attacher, ok := i.(Attacher); ok {
+		attacher.Attach(t)
 	}
 }
 
