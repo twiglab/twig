@@ -1,8 +1,11 @@
 package twig
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+	"reflect"
+	"runtime"
 )
 
 type HttpErrorHandler func(error, Ctx)
@@ -94,4 +97,63 @@ func DefaultHttpErrorHandler(err error, c Ctx) {
 			c.Logger().Println(err)
 		}
 	}
+}
+
+// 获取handler的名称
+func HandlerName(h HandlerFunc) string {
+	t := reflect.ValueOf(h).Type()
+	if t.Kind() == reflect.Func {
+		return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
+	}
+	return t.String()
+}
+
+//根据path和参数构建url
+func Reverse(path string, params ...interface{}) string {
+	uri := new(bytes.Buffer)
+	ln := len(params)
+	n := 0
+	for i, l := 0, len(path); i < l; i++ {
+		if path[i] == ':' && n < ln {
+			for ; i < l && path[i] != '/'; i++ {
+			}
+			uri.WriteString(fmt.Sprintf("%v", params[n]))
+			n++
+		}
+		if i < l {
+			uri.WriteByte(path[i])
+		}
+	}
+	return uri.String()
+}
+
+// HelloTwig! ~~
+func HelloTwig(c Ctx) error {
+	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
+}
+
+type RouteDesc struct {
+	N string
+	P string
+	M string
+}
+
+func (r *RouteDesc) ID() string {
+	return r.M + r.P
+}
+
+func (r *RouteDesc) Name() string {
+	return r.N
+}
+
+func (r *RouteDesc) Method() string {
+	return r.M
+}
+
+func (r *RouteDesc) Path() string {
+	return r.P
+}
+
+func (r *RouteDesc) SetName(name string) {
+	r.N = name
 }
