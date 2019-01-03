@@ -27,6 +27,7 @@ type Route interface {
 	ID() string
 	Method() string
 	Path() string
+	Name() string
 	Namer
 }
 

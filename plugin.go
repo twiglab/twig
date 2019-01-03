@@ -4,9 +4,8 @@ package twig
 // 如果插件需要生命周期管理，请实现Cycler接口
 // 如果插件需要访问Twig本身，请实现Attacher接口
 type Plugin interface {
-	ID() string
+	Identifier
 	Name() string
-	Type() string
 }
 
 // GetPlugin 从当前Ctx中获取Plugin

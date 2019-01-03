@@ -9,6 +9,11 @@ import (
 
 type M map[string]interface{}
 
+// Identifier 标识符接口
+type Identifier interface {
+	ID() string
+}
+
 // Attacher 用于设置Twig和组件之间的联系
 type Attacher interface {
 	Attach(*Twig)
@@ -20,8 +25,8 @@ type Cycler interface {
 	Shutdown(context.Context) error
 }
 
+// Namer 命名接口
 type Namer interface {
-	Name() string
 	SetName(string)
 }
 
@@ -191,10 +196,6 @@ func (t *Twig) Name() string {
 
 func (t *Twig) ID() string {
 	return "Twig@" + t.name
-}
-
-func (t *Twig) Type() string {
-	return "webserver"
 }
 
 func (t *Twig) Config() *Conf {
