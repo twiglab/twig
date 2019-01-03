@@ -24,7 +24,7 @@ type Muxer interface {
 // Route 接口，Route接口用于描述一个已经加入Register的路由，由Register的AddHandler方法返回
 // Route 提供命名路由的方法，被命名的路由可以用于Ctx.URL方法查找
 type Route interface {
-	ID() string
+	Identifier
 	Method() string
 	Path() string
 	Name() string
