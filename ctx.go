@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/url"
@@ -35,6 +36,9 @@ type Ctx interface {
 
 	FormValue(string) string
 	FormParams() (url.Values, error)
+
+	FormFile(name string) (*multipart.FileHeader, error)
+	MultipartForm() (*multipart.Form, error)
 
 	Get(string) interface{}
 	Set(string, interface{})
@@ -226,17 +230,15 @@ func (c *ctx) FormParams() (url.Values, error) {
 	return c.req.Form, nil
 }
 
-/*
-func (c *context) FormFile(name string) (*multipart.FileHeader, error) {
-	_, fh, err := c.request.FormFile(name)
+func (c *ctx) FormFile(name string) (*multipart.FileHeader, error) {
+	_, fh, err := c.req.FormFile(name)
 	return fh, err
 }
 
-func (c *context) MultipartForm() (*multipart.Form, error) {
-	err := c.request.ParseMultipartForm(defaultMemory)
-	return c.request.MultipartForm, err
+func (c *ctx) MultipartForm() (*multipart.Form, error) {
+	err := c.req.ParseMultipartForm(defaultMemory)
+	return c.req.MultipartForm, err
 }
-*/
 
 func (c *ctx) Cookie(name string) (*http.Cookie, error) {
 	return c.req.Cookie(name)
