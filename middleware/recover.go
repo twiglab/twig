@@ -33,7 +33,7 @@ func RecoverWithConfig(config RecoverConfig) twig.MiddlewareFunc {
 				if r := recover(); r != nil {
 					err, ok := r.(error)
 					if !ok {
-						err = fmt.Errorf("%V", r)
+						err = fmt.Errorf("%v", r)
 					}
 					c.Error(err)
 				}
