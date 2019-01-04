@@ -129,9 +129,8 @@ var (
 )
 
 const (
-	defaultMemory      = 32 << 20 // 32 MB
-	indexPage          = "index.html"
-	defaultHeaderBytes = 1 << 20 // 512k
+	defaultMemory = 32 << 20 // 32 MB
+	indexPage     = "index.html"
 )
 
 const XMLHttpRequest = "XMLHttpRequest"
