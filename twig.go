@@ -66,7 +66,7 @@ func Default() *Twig {
 	}
 
 	t.
-		WithServer(DefaultServnat()).
+		WithServer(DefaultServant()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())

@@ -19,7 +19,7 @@ type Servant struct {
 	t      *Twig
 }
 
-func DefaultServnat() *Servant {
+func DefaultServant() *Servant {
 	return &Servant{
 		Server: &http.Server{
 			Addr:           DefaultAddress,
