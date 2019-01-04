@@ -4,13 +4,13 @@ import (
 	"net/http"
 )
 
-// Register
+// Register 接口
 type Register interface {
 	AddHandler(string, string, HandlerFunc, ...MiddlewareFunc) Route
 	Use(...MiddlewareFunc)
 }
 
-// Lookuper
+// Lookuper 接口
 type Lookuper interface {
 	Lookup(string, string, *http.Request, MCtx)
 }
