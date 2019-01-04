@@ -2,12 +2,24 @@ package twig
 
 import (
 	"net/http"
+	"net/url"
+	"path"
+	"path/filepath"
 	"reflect"
 	"runtime"
 )
 
 type HandlerFunc func(Ctx) error
+
+func (h HandlerFunc) Mount(method, path string, reg Register, m ...MiddlewareFunc) Route {
+	return reg.AddHandler(method, path, h, m...)
+}
+
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
+
+func (m MiddlewareFunc) UsedBy(reg Register) {
+	reg.Use(m)
+}
 
 func WrapHttpHandler(h http.Handler) HandlerFunc {
 	return func(c Ctx) error {
@@ -71,4 +83,16 @@ func HandlerName(h HandlerFunc) string {
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
 	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
+}
+
+func Static(r string) HandlerFunc {
+	root := path.Clean(r)
+	return func(c Ctx) error {
+		p, err := url.PathUnescape(c.Param("*"))
+		if err != nil {
+			return err
+		}
+		name := filepath.Join(root, path.Clean("/"+p)) // "/"+ for security
+		return c.File(name)
+	}
 }

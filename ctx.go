@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/twiglab/twig/internal/json"
@@ -39,6 +41,10 @@ type Ctx interface {
 
 	FormFile(name string) (*multipart.FileHeader, error)
 	MultipartForm() (*multipart.Form, error)
+
+	File(file string) error
+	Attachment(file, name string) error
+	Inline(file, name string) error
 
 	Get(string) interface{}
 	Set(string, interface{})
@@ -238,6 +244,42 @@ func (c *ctx) FormFile(name string) (*multipart.FileHeader, error) {
 func (c *ctx) MultipartForm() (*multipart.Form, error) {
 	err := c.req.ParseMultipartForm(defaultMemory)
 	return c.req.MultipartForm, err
+}
+
+func (c *ctx) File(file string) (err error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return NotFoundHandler(c)
+	}
+	defer f.Close()
+
+	fi, _ := f.Stat()
+	if fi.IsDir() {
+		file = filepath.Join(file, indexPage)
+		f, err = os.Open(file)
+		if err != nil {
+			return NotFoundHandler(c)
+		}
+		defer f.Close()
+		if fi, err = f.Stat(); err != nil {
+			return
+		}
+	}
+	http.ServeContent(c.Resp(), c.Req(), fi.Name(), fi.ModTime(), f)
+	return
+}
+
+func (c *ctx) Attachment(file, name string) error {
+	return c.contentDisposition(file, name, "attachment")
+}
+
+func (c *ctx) Inline(file, name string) error {
+	return c.contentDisposition(file, name, "inline")
+}
+
+func (c *ctx) contentDisposition(file, name, dispositionType string) error {
+	c.Resp().Header().Set(HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", dispositionType, name))
+	return c.File(file)
 }
 
 func (c *ctx) Cookie(name string) (*http.Cookie, error) {
