@@ -108,7 +108,7 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 }
 
 // Plugin支持
-func (t *Twig) AddPlugins(plugins ...Plugin) {
+func (t *Twig) UsePlugin(plugins ...Plugin) {
 	for _, plugin := range plugins {
 		attach(plugin, t)
 		t.plugins[plugin.ID()] = plugin

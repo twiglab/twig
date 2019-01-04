@@ -32,9 +32,9 @@ type Route interface {
 }
 
 type NamedRoute struct {
-	N string
-	P string
-	M string
+	N string // name
+	P string // path
+	M string // method
 }
 
 func (r *NamedRoute) ID() string {

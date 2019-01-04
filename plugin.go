@@ -14,3 +14,8 @@ func GetPlugin(id string, c Ctx) Plugin {
 	t := c.Twig()
 	return t.Plugin(id)
 }
+
+// UsePlugin 将plugin加入到Twig中
+func UsePlugin(plugin Plugin, t *Twig) {
+	t.UsePlugin(plugin)
+}
