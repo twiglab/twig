@@ -114,7 +114,7 @@ type ctx struct {
 
 	t *Twig
 
-	store M
+	store Map
 
 	routes map[string]Route
 }
@@ -255,7 +255,7 @@ func (c *ctx) File(file string) (err error) {
 
 	fi, _ := f.Stat()
 	if fi.IsDir() {
-		file = filepath.Join(file, indexPage)
+		file = filepath.Join(file, IndexPage)
 		f, err = os.Open(file)
 		if err != nil {
 			return NotFoundHandler(c)
@@ -382,7 +382,7 @@ func (c *ctx) Get(key string) interface{} {
 
 func (c *ctx) Set(key string, val interface{}) {
 	if c.store == nil {
-		c.store = make(M)
+		c.store = make(Map)
 	}
 	c.store[key] = val
 }

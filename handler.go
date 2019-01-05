@@ -80,6 +80,14 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
+func M(m MiddlewareFunc) MiddlewareFunc {
+	return m
+}
+
+func H(h HandlerFunc) HandlerFunc {
+	return h
+}
+
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
 	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")

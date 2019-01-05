@@ -48,7 +48,7 @@ func Reverse(path string, params ...interface{}) string {
 }
 
 // 设置关联关系
-func attach(i interface{}, t *Twig) {
+func Attach(i interface{}, t *Twig) {
 	if attacher, ok := i.(Attacher); ok {
 		attacher.Attach(t)
 	}

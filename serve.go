@@ -43,7 +43,7 @@ func (s *Servant) Start() (err error) {
 	return
 }
 
-func HttpServerWrap(s *http.Server) Server {
+func WrapHttpServer(s *http.Server) Server {
 	return &Servant{
 		Server: s,
 	}

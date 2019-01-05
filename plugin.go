@@ -5,7 +5,6 @@ package twig
 // 如果插件需要访问Twig本身，请实现Attacher接口
 type Plugin interface {
 	Identifier
-	Name() string
 }
 
 // GetPlugin 从当前Ctx中获取Plugin
@@ -16,6 +15,6 @@ func GetPlugin(id string, c Ctx) Plugin {
 }
 
 // UsePlugin 将plugin加入到Twig中
-func UsePlugin(plugin Plugin, t *Twig) {
-	t.UsePlugin(plugin)
+func UsePlugin(t *Twig, plugin ...Plugin) {
+	t.UsePlugin(plugin...)
 }

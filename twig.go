@@ -7,11 +7,12 @@ import (
 	"sync"
 )
 
-type M map[string]interface{}
+type Map map[string]interface{}
 
 // Identifier 标识符接口
 type Identifier interface {
 	ID() string
+	Name() string
 }
 
 // Attacher 用于设置Twig和组件之间的联系
@@ -76,7 +77,7 @@ func Default() *Twig {
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	attach(l, t)
+	Attach(l, t)
 	return t
 }
 
@@ -87,7 +88,7 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
-	attach(m, t)
+	Attach(m, t)
 	return t
 }
 
@@ -110,7 +111,7 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 // Plugin支持
 func (t *Twig) UsePlugin(plugins ...Plugin) {
 	for _, plugin := range plugins {
-		attach(plugin, t)
+		Attach(plugin, t)
 		t.plugins[plugin.ID()] = plugin
 	}
 }
@@ -167,7 +168,7 @@ func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
 		req:     r,
 		resp:    NewResponseWarp(w),
 		t:       t,
-		store:   make(M),
+		store:   make(Map),
 		pvalues: make([]string, MaxParam),
 		handler: NotFoundHandler,
 	}

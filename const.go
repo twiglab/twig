@@ -128,9 +128,6 @@ var (
 	ErrCookieNotFound              = errors.New("cookie not found")
 )
 
-const (
-	defaultMemory = 32 << 20 // 32 MB
-	indexPage     = "index.html"
-)
+const defaultMemory = 32 << 20 // 32 MB
 
 const XMLHttpRequest = "XMLHttpRequest"
