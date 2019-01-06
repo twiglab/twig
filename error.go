@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// HttpError 封装一个HttpError
 type HttpError struct {
 	Code     int
 	Msg      interface{}

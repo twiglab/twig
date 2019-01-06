@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func newLog(w io.Writer, name string) Logger {
+func newLog(w io.Writer, name string) *log.Logger {
 	return log.New(w, name, log.LstdFlags|log.Llongfile)
 }
 

@@ -2,7 +2,6 @@ package twig
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 )
@@ -23,7 +22,7 @@ func DefaultServant() *Servant {
 	return &Servant{
 		Server: &http.Server{
 			Addr:     DefaultAddress,
-			ErrorLog: log.New(os.Stderr, "twig-server-log-", log.LstdFlags|log.Llongfile),
+			ErrorLog: newLog(os.Stderr, "twig-servant-"),
 		},
 	}
 }

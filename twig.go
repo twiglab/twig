@@ -69,7 +69,7 @@ func Default() *Twig {
 	t.
 		WithServer(DefaultServant()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newLog(os.Stdout, "twig-log-")).
+		WithLogger(newLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree())
 
 	return t
@@ -95,6 +95,11 @@ func (t *Twig) WithMuxer(m Muxer) *Twig {
 func (t *Twig) WithServer(s Server) *Twig {
 	t.Server = s
 	s.Attach(t)
+	return t
+}
+
+func (t *Twig) EnableDebug() *Twig {
+	t.Debug = true
 	return t
 }
 

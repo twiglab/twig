@@ -58,7 +58,6 @@ func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 		h = m[i](h)
 	}
 	return h
-
 }
 
 // NotFoundHandler 全局404处理方法， 如果需要修改
@@ -93,6 +92,7 @@ func HelloTwig(c Ctx) error {
 	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
 }
 
+// Static 处理静态文件的HandlerFunc
 func Static(r string) HandlerFunc {
 	root := path.Clean(r)
 	return func(c Ctx) error {
@@ -100,7 +100,7 @@ func Static(r string) HandlerFunc {
 		if err != nil {
 			return err
 		}
-		name := filepath.Join(root, path.Clean("/"+p)) // "/"+ for security
+		name := filepath.Join(root, path.Clean("/"+p)) // 安全考虑 + "/"
 		return c.File(name)
 	}
 }
