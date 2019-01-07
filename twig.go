@@ -53,11 +53,6 @@ type Twig struct {
 
 // 创建空的Twig
 func TODO() *Twig {
-	return Default()
-}
-
-// 创建默认的Twig
-func Default() *Twig {
 	t := &Twig{
 		Debug: false,
 		name:  "main",
@@ -72,6 +67,13 @@ func Default() *Twig {
 		WithLogger(newLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree())
 
+	return t
+}
+
+// 创建默认的Twig
+func Default() *Twig {
+	t := TODO()
+	t.UsePlugin(&DefaultBinder{})
 	return t
 }
 
@@ -108,12 +110,12 @@ func (t *Twig) Pre(m ...MiddlewareFunc) {
 	t.pre = append(t.pre, m...)
 }
 
-// Twig级中间件支持
+// Use Twig级中间件支持
 func (t *Twig) Use(m ...MiddlewareFunc) {
 	t.mid = append(t.mid, m...)
 }
 
-// Plugin支持
+// UserPlugin 加入Plugin
 func (t *Twig) UsePlugin(plugins ...Plugin) {
 	for _, plugin := range plugins {
 		Attach(plugin, t)
@@ -121,12 +123,13 @@ func (t *Twig) UsePlugin(plugins ...Plugin) {
 	}
 }
 
-//获取Plugin
-func (t *Twig) Plugin(id string) Plugin {
-	return t.plugins[id]
+// Plugin 获取Plugin
+func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
+	p, ok = t.plugins[id]
+	return
 }
 
-// 实现http.Handler
+// ServeHTTP 实现`http.Handler`接口
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := t.pool.Get().(*ctx) // pool 中获取Ctx
 	c.Reset(w, r)            // 重置Ctx，放入当前的Resp和Req , Ctx是可以重用的

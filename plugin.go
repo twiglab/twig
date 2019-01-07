@@ -8,13 +8,32 @@ type Plugin interface {
 }
 
 // GetPlugin 从当前Ctx中获取Plugin
-// 注意：Plugin可能为nil
-func GetPlugin(id string, c Ctx) Plugin {
+func GetPlugin(id string, c Ctx) (p Plugin, ok bool) {
 	t := c.Twig()
-	return t.Plugin(id)
+	p, ok = t.Plugin(id)
+	return
 }
 
 // UsePlugin 将plugin加入到Twig中
 func UsePlugin(t *Twig, plugin ...Plugin) {
 	t.UsePlugin(plugin...)
+}
+
+// Binder 数据绑定接口
+// Binder 作为一个插件集成到Twig中
+type Binder interface {
+	Plugin
+	Bind(interface{}, Ctx) error
+}
+
+// GetBinder 获取绑定接口
+func GetBinder(id string, c Ctx) (Binder, bool) {
+	plugin, ok := GetPlugin(id, c)
+	if !ok {
+		return nil, false
+	}
+	if binder, ok := plugin.(Binder); ok {
+		return binder, ok
+	}
+	return nil, false
 }
