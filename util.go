@@ -2,6 +2,7 @@ package twig
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -52,6 +53,22 @@ func Attach(i interface{}, t *Twig) {
 	if attacher, ok := i.(Attacher); ok {
 		attacher.Attach(t)
 	}
+}
+
+func Start(i interface{}) error {
+	if cycler, ok := i.(Cycler); ok {
+		return cycler.Start()
+	}
+
+	return nil
+}
+
+func Shutdown(i interface{}, c context.Context) error {
+	if cycler, ok := i.(Cycler); ok {
+		return cycler.Shutdown(c)
+	}
+
+	return nil
 }
 
 type Conf struct {
