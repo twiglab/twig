@@ -54,8 +54,9 @@ type Twig struct {
 // 创建空的Twig
 func TODO() *Twig {
 	t := &Twig{
-		Debug: false,
-		name:  "main",
+		Debug:   false,
+		name:    "main",
+		plugins: make(map[string]Plugin),
 	}
 	t.pool.New = func() interface{} {
 		return t.NewCtx(nil, nil)
