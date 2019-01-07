@@ -22,7 +22,6 @@ func UsePlugin(t *Twig, plugin ...Plugin) {
 // Binder 数据绑定接口
 // Binder 作为一个插件集成到Twig中
 type Binder interface {
-	Plugin
 	Bind(interface{}, Ctx) error
 }
 

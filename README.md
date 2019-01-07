@@ -1,5 +1,5 @@
 # twig
-twig 是一个面向webapi的简单的webserver （目前预览发布，API没有冻结，请注意）
+twig 是一个面向webapi的简单的webserver （API已经冻结）
 
 > Twig 采用QQ群提供技术支持，QQ群号：472900117
 

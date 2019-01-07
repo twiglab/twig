@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	DefaultBinderID = "_twig_default_binder_"
+	defBinderID = "_twig_default_binder_"
 )
 
 type BindUnmarshaler interface {
@@ -33,11 +33,11 @@ type BindUnmarshaler interface {
 type DefaultBinder struct{}
 
 func (b *DefaultBinder) ID() string {
-	return DefaultBinderID
+	return defBinderID
 }
 
 func (b *DefaultBinder) Name() string {
-	return DefaultBinderID
+	return defBinderID
 }
 
 func (b *DefaultBinder) Bind(i interface{}, c Ctx) (err error) {
@@ -289,9 +289,9 @@ func setFloatField(value string, bitSize int, field reflect.Value) error {
 }
 
 func Bind(i interface{}, c Ctx) error {
-	binder, ok := GetBinder(DefaultBinderID, c)
+	binder, ok := GetBinder(defBinderID, c)
 	if !ok {
-		return fmt.Errorf("not found binder id(%s)", DefaultBinderID)
+		return fmt.Errorf("not found binder id(%s)", defBinderID)
 	}
 	return binder.Bind(i, c)
 }
