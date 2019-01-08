@@ -209,6 +209,6 @@ func (t *Twig) ID() string {
 	return "Twig@" + t.name
 }
 
-func (t *Twig) Config() *Conf {
+func (t *Twig) Config() *Cfg {
 	return Config(t).WithNamer(t)
 }

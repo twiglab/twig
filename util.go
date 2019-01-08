@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Mouter接口用于模块化设置路由
+// Mouter 接口用于模块化设置路由
 type Mounter interface {
 	Mount(Register)
 }
@@ -29,7 +29,7 @@ func IsAJAX(r *http.Request) bool {
 	return strings.Contains(r.Header.Get(HeaderXRequestedWith), XMLHttpRequest)
 }
 
-//根据path和参数构建url
+// Reverse 根据path和参数构建url
 func Reverse(path string, params ...interface{}) string {
 	uri := new(bytes.Buffer)
 	ln := len(params)
@@ -48,7 +48,7 @@ func Reverse(path string, params ...interface{}) string {
 	return uri.String()
 }
 
-// 设置关联关系
+// Attach 设置关联关系
 func Attach(i interface{}, t *Twig) {
 	if attacher, ok := i.(Attacher); ok {
 		attacher.Attach(t)
@@ -71,71 +71,71 @@ func Shutdown(i interface{}, c context.Context) error {
 	return nil
 }
 
-type Conf struct {
+type Cfg struct {
 	R Register
 	N Namer
 }
 
-func Config(r Register) *Conf {
-	return &Conf{
+func Config(r Register) *Cfg {
+	return &Cfg{
 		R: r,
 		N: nil,
 	}
 }
 
-func (c *Conf) WithNamer(n Namer) *Conf {
+func (c *Cfg) WithNamer(n Namer) *Cfg {
 	c.N = n
 	return c
 }
 
-func (c *Conf) SetName(name string) *Conf {
+func (c *Cfg) SetName(name string) *Cfg {
 	c.N.SetName(name)
 	return c
 }
 
-func (c *Conf) Use(m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Use(m ...MiddlewareFunc) *Cfg {
 	c.R.Use(m...)
 	return c
 }
 
-func (c *Conf) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	c.N = c.R.AddHandler(method, path, handler, m...)
 	return c
 }
 
-func (c *Conf) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(GET, path, handler, m...)
 }
 
-func (c *Conf) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(POST, path, handler, m...)
 }
 
-func (c *Conf) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(DELETE, path, handler, m...)
 }
 
-func (c *Conf) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(PUT, path, handler, m...)
 }
 
-func (c *Conf) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(PATCH, path, handler, m...)
 }
 
-func (c *Conf) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(HEAD, path, handler, m...)
 }
 
-func (c *Conf) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(OPTIONS, path, handler, m...)
 }
 
-func (c *Conf) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+func (c *Cfg) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
-func (c *Conf) Done() {
+func (c *Cfg) Done() {
 	c.R = nil
 	c.N = nil
 	c = nil
