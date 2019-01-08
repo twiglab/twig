@@ -6,7 +6,7 @@ import (
 )
 
 func newLog(w io.Writer, name string) *log.Logger {
-	return log.New(w, name, log.LstdFlags|log.Llongfile)
+	return log.New(w, name, log.LstdFlags|log.Lshortfile)
 }
 
 type Logger interface {

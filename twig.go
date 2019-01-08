@@ -65,7 +65,7 @@ func TODO() *Twig {
 	t.
 		WithServer(DefaultServant()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newLog(os.Stdout, "twig-")).
+		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())
 
 	return t
@@ -150,7 +150,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Start Cycler#Start
 func (t *Twig) Start() error {
-	t.Logger.Println(banner)
+	t.Logger.Printf(banner, Version)
 
 	for _, p := range t.plugins {
 		Start(p)
