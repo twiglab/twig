@@ -148,6 +148,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t.pool.Put(c) // 交还Ctx，后续复用，Http处理过程结束
 }
 
+// Start Cycler#Start
 func (t *Twig) Start() error {
 	t.Logger.Println(banner)
 
@@ -158,6 +159,7 @@ func (t *Twig) Start() error {
 	return t.Server.Start()
 }
 
+// Start Cycler#Shutdown
 func (t *Twig) Shutdown(ctx context.Context) error {
 	for _, p := range t.plugins {
 		Shutdown(p, ctx)
@@ -192,14 +194,17 @@ func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...Middlew
 	return t.Muxer.AddHandler(method, path, handler, m...)
 }
 
+// SetName Namer#SetName
 func (t *Twig) SetName(name string) {
 	t.name = name
 }
 
+// Name Identifier#Name
 func (t *Twig) Name() string {
 	return t.name
 }
 
+// Name Identifier#ID
 func (t *Twig) ID() string {
 	return "Twig@" + t.name
 }
