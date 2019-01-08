@@ -150,7 +150,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Start Cycler#Start
 func (t *Twig) Start() error {
-	t.Logger.Printf(banner, Version)
+	t.Logger.Printf("%s(%s)\n", t.ID(), Version)
 
 	for _, p := range t.plugins {
 		Start(p)
