@@ -26,13 +26,12 @@ type Binder interface {
 }
 
 // GetBinder 获取绑定接口
-func GetBinder(id string, c Ctx) (Binder, bool) {
-	plugin, ok := GetPlugin(id, c)
+func GetBinder(id string, c Ctx) (binder Binder, ok bool) {
+	var plugin Plugin
+	plugin, ok = GetPlugin(id, c)
 	if !ok {
-		return nil, false
+		return
 	}
-	if binder, ok := plugin.(Binder); ok {
-		return binder, ok
-	}
-	return nil, false
+	binder, ok = plugin.(Binder)
+	return
 }
