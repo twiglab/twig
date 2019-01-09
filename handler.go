@@ -11,7 +11,7 @@ import (
 
 type HandlerFunc func(Ctx) error
 
-func (h HandlerFunc) Mount(method, path string, reg Register, m ...MiddlewareFunc) Route {
+func (h HandlerFunc) Mount(reg Register, method, path string, m ...MiddlewareFunc) Route {
 	return reg.AddHandler(method, path, h, m...)
 }
 
