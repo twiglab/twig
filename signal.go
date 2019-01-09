@@ -11,23 +11,6 @@ type Reloader interface {
 	Reload() error
 }
 
-// Reload
-// bug: 无法处理所有信号(TODO)
-/*
-func Reload(r Reloader, sig ...os.Signal) {
-	return func(s os.Signal) bool {
-		for _, g := range sig {
-			if s == g {
-				if err := r.Reload(); err != nil {
-					// log
-				}
-				return false
-			}
-		}
-	}
-}
-*/
-
 // 信号处理函数
 // 返回true 退出
 // 返回false 等待处理下一个信号
@@ -51,7 +34,7 @@ func Nop() SignalFunc {
 // 参数f为信号处理函数
 // 参数sig 为需要监听的系统信号，未出现在sig中的信号会被忽略
 // 如果sig 为空，则监听所有信号
-// 特别注意：部分操作系统的信号不可以被忽略
+// 特别注意：部分操作系统的信号不可以被忽略 (SIGKILL & SIGSTOP)
 func Signal(f SignalFunc, sig ...os.Signal) {
 	ch := make(chan os.Signal)
 	defer close(ch)
