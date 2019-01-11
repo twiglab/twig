@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	api := twig.Default()
+	api := twig.TODO()
 
 	twig.Config(api).
 		Use(middleware.Recover()).

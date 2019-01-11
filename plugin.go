@@ -19,19 +19,15 @@ func UsePlugin(t *Twig, plugin ...Plugin) {
 	t.UsePlugin(plugin...)
 }
 
-// Binder 数据绑定接口
-// Binder 作为一个插件集成到Twig中,请实现Plugin接口
-type Binder interface {
-	Bind(interface{}, Ctx) error
+type DummyPlugin struct {
+	PlugName string
+	PluginID string
 }
 
-// GetBinder 获取绑定接口
-func GetBinder(id string, c Ctx) (binder Binder, ok bool) {
-	var plugin Plugin
-	plugin, ok = GetPlugin(id, c)
-	if !ok {
-		return
-	}
-	binder, ok = plugin.(Binder)
-	return
+func (p *DummyPlugin) Name() string {
+	return p.PlugName
+}
+
+func (p *DummyPlugin) ID() string {
+	return p.PluginID
 }

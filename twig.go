@@ -71,13 +71,6 @@ func TODO() *Twig {
 	return t
 }
 
-// 创建默认的Twig
-func Default() *Twig {
-	t := TODO()
-	t.UsePlugin(&DefaultBinder{})
-	return t
-}
-
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
 	Attach(l, t)
