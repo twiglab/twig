@@ -19,6 +19,7 @@ type Lookuper interface {
 type Muxer interface {
 	Lookuper
 	Register
+	Attacher
 }
 
 // Route 接口，Route接口用于描述一个已经加入Register的路由，由Register的AddHandler方法返回

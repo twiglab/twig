@@ -74,7 +74,21 @@ func HandlerName(h HandlerFunc) string {
 
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
-	return c.Stringf(http.StatusOK, "Hello %s!", "Twig")
+	type info struct {
+		Title  string
+		Path   string
+		Url    string
+		Params map[string]string
+	}
+
+	i := &info{
+		Title:  "Hello Twig!",
+		Path:   c.Path(),
+		Url:    GetReqPath(c.Req()),
+		Params: c.Params(),
+	}
+
+	return c.JSON(http.StatusOK, i)
 }
 
 // Static 处理静态文件的HandlerFunc

@@ -156,6 +156,7 @@ type RadixTree struct {
 	tree   *node
 	routes map[string]Route
 	m      []MiddlewareFunc
+	t      *Twig
 }
 
 func NewRadixTree() *RadixTree {
@@ -165,6 +166,10 @@ func NewRadixTree() *RadixTree {
 		},
 		routes: map[string]Route{},
 	}
+}
+
+func (r *RadixTree) Attach(t *Twig) {
+	r.t = t
 }
 
 func (r *RadixTree) Add(method, path string, h HandlerFunc) {

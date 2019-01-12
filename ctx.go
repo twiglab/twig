@@ -15,6 +15,8 @@ import (
 	"github.com/twiglab/twig/internal/json"
 )
 
+type UrlParams map[string]string
+
 // Ctx 接口，用于向Handler传递Twig上下文数据，并提供简化操作完成请求处理
 type Ctx interface {
 	Req() *http.Request
@@ -31,6 +33,7 @@ type Ctx interface {
 	Path() string
 
 	Param(string) string
+	Params() UrlParams
 
 	QueryParam(string) string
 	QueryParams() url.Values
@@ -198,6 +201,18 @@ func (c *ctx) Param(name string) string {
 		}
 	}
 	return ""
+}
+
+func (c *ctx) Params() UrlParams {
+	pms := make(UrlParams)
+
+	for i, n := range c.pnames {
+		if i < len(c.pvalues) {
+			pms[n] = c.pvalues[i]
+		}
+	}
+
+	return pms
 }
 
 func (c *ctx) QueryParam(name string) string {
