@@ -178,17 +178,16 @@ func newRadixTreeCtx(t *Twig, tree *RadixTree) *radixTreeCtx {
 	return c
 }
 
+func (c *radixTreeCtx) Release() {
+	c.tree.releaseCtx(c)
+}
+
 func (c *radixTreeCtx) Path() string {
 	return c.path
 }
 
 func (c *radixTreeCtx) Handler() HandlerFunc {
 	return c.handler
-}
-
-func (c *radixTreeCtx) Close() error {
-	c.tree.releaseCtx(c)
-	return nil
 }
 
 func (c *radixTreeCtx) Param(name string) string {
@@ -521,6 +520,7 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
 	c := r.pool.Get().(*radixTreeCtx)
 	r.Find(method, path, c)
+	c.SetFact(c)
 	c.handler = Merge(c.handler, r.m)
 
 	return c

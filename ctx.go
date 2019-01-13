@@ -88,8 +88,10 @@ type BaseCtx struct {
 	req   *http.Request
 	resp  *ResponseWarp
 	query url.Values
-	store Map
+	store M
 	twig  *Twig
+
+	fact Ctx
 }
 
 func NewBaseCtx(t *Twig) *BaseCtx {
@@ -97,6 +99,10 @@ func NewBaseCtx(t *Twig) *BaseCtx {
 		resp: NewResponseWarp(nil),
 		twig: t,
 	}
+}
+
+func (c *BaseCtx) SetFact(fact Ctx) {
+	c.fact = fact
 }
 
 func (c *BaseCtx) ResetHttp(w http.ResponseWriter, r *http.Request) {
@@ -213,7 +219,7 @@ func (c *BaseCtx) MultipartForm() (*multipart.Form, error) {
 func (c *BaseCtx) File(file string) (err error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return NotFoundHandler(c)
+		return NotFoundHandler(c.fact)
 	}
 	defer f.Close()
 
@@ -222,7 +228,7 @@ func (c *BaseCtx) File(file string) (err error) {
 		file = filepath.Join(file, IndexPage)
 		f, err = os.Open(file)
 		if err != nil {
-			return NotFoundHandler(c)
+			return NotFoundHandler(c.fact)
 		}
 		defer f.Close()
 		if fi, err = f.Stat(); err != nil {
@@ -346,7 +352,7 @@ func (c *BaseCtx) Get(key string) interface{} {
 
 func (c *BaseCtx) Set(key string, val interface{}) {
 	if c.store == nil {
-		c.store = make(Map)
+		c.store = make(M)
 	}
 	c.store[key] = val
 }
@@ -374,20 +380,6 @@ func (c *BaseCtx) Logger() Logger {
 }
 
 func (c *BaseCtx) Error(e error) {
-	c.twig.HttpErrorHandler(e, c)
-}
-
-// Param 自定义路由中必须覆盖这个方法
-func (c *BaseCtx) Param(name string) string {
-	return ""
-}
-
-// Params 自定义路由中必须覆盖这个方法
-func (c *BaseCtx) Params() UrlParams {
-	return nil
-}
-
-// Path 自定义路由中必须覆盖这个方法
-func (c *BaseCtx) Path() string {
-	return ""
+	fmt.Println(c.fact.Path())
+	c.twig.HttpErrorHandler(e, c.fact)
 }

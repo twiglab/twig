@@ -1,9 +1,7 @@
 package twig
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -30,6 +28,7 @@ func IsAJAX(r *http.Request) bool {
 }
 
 // Reverse 根据path和参数构建url
+/*
 func Reverse(path string, params ...interface{}) string {
 	uri := new(bytes.Buffer)
 	ln := len(params)
@@ -47,6 +46,7 @@ func Reverse(path string, params ...interface{}) string {
 	}
 	return uri.String()
 }
+*/
 
 // Attach 设置关联关系
 func Attach(i interface{}, t *Twig) {

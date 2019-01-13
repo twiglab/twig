@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type Map map[string]interface{}
+type M map[string]interface{}
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -81,7 +81,7 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
-	Attach(m, t)
+	m.Attach(t)
 	return t
 }
 
@@ -121,7 +121,7 @@ func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
 }
 
 type MuxerCtx interface {
-	Close() error
+	Release()
 	ResetHttp(http.ResponseWriter, *http.Request)
 	Handler() HandlerFunc
 }
@@ -133,7 +133,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mc := c.(MuxerCtx)
 	mc.ResetHttp(w, r)
 
-	defer mc.Close()
+	defer mc.Release()
 
 	h := Merge(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
 		handler := Merge(mc.Handler(), t.mid) // 处理Twig级中间件
