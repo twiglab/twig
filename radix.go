@@ -156,7 +156,7 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 }
 
 type radixTreeCtx struct {
-	*ctx
+	*BaseCtx
 
 	handler HandlerFunc
 	path    string
@@ -213,7 +213,7 @@ func NewRadixTree() *RadixTree {
 
 func (r *RadixTree) newCtx(t *Twig) *radixTreeCtx {
 	ctx := &radixTreeCtx{
-		ctx: NewCtx(r.t),
+		BaseCtx: NewBaseCtx(r.t),
 	}
 
 	return ctx
