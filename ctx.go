@@ -84,7 +84,7 @@ type Ctx interface {
 	Logger() Logger
 }
 
-type BaseCtx struct {
+type VCtx struct {
 	req   *http.Request
 	resp  *ResponseWarp
 	query url.Values
@@ -94,53 +94,53 @@ type BaseCtx struct {
 	fact Ctx
 }
 
-func NewBaseCtx(t *Twig) *BaseCtx {
-	return &BaseCtx{
+func NewVCtx(t *Twig) *VCtx {
+	return &VCtx{
 		resp: NewResponseWarp(nil),
 		twig: t,
 	}
 }
 
-func (c *BaseCtx) SetFact(fact Ctx) {
+func (c *VCtx) SetFact(fact Ctx) {
 	c.fact = fact
 }
 
-func (c *BaseCtx) ResetHttp(w http.ResponseWriter, r *http.Request) {
+func (c *VCtx) reset(w http.ResponseWriter, r *http.Request) {
 	c.req = r
 	c.resp.reset(w)
 	c.query = nil
 	c.store = nil
 }
 
-func (c *BaseCtx) writeContentType(value string) {
+func (c *VCtx) writeContentType(value string) {
 	header := c.Resp().Header()
 	if header.Get(HeaderContentType) == "" {
 		header.Set(HeaderContentType, value)
 	}
 }
 
-func (c *BaseCtx) Resp() *ResponseWarp {
+func (c *VCtx) Resp() *ResponseWarp {
 	return c.resp
 }
 
-func (c *BaseCtx) Req() *http.Request {
+func (c *VCtx) Req() *http.Request {
 	return c.req
 }
 
-func (c *BaseCtx) SetReq(r *http.Request) {
+func (c *VCtx) SetReq(r *http.Request) {
 	c.req = r
 }
 
-func (c *BaseCtx) IsTls() bool {
+func (c *VCtx) IsTls() bool {
 	return c.req.TLS != nil
 }
 
-func (c *BaseCtx) IsWebSocket() bool {
+func (c *VCtx) IsWebSocket() bool {
 	upgrade := c.req.Header.Get(HeaderUpgrade)
 	return upgrade == "websocket" || upgrade == "Websocket"
 }
 
-func (c *BaseCtx) Scheme() string {
+func (c *VCtx) Scheme() string {
 	if c.IsTls() {
 		return "https"
 	}
@@ -159,7 +159,7 @@ func (c *BaseCtx) Scheme() string {
 	return "http"
 }
 
-func (c *BaseCtx) RealIP() string {
+func (c *VCtx) RealIP() string {
 	if ip := c.req.Header.Get(HeaderXForwardedFor); ip != "" {
 		return strings.Split(ip, ", ")[0]
 	}
@@ -170,14 +170,14 @@ func (c *BaseCtx) RealIP() string {
 	return ra
 }
 
-func (c *BaseCtx) QueryParam(name string) string {
+func (c *VCtx) QueryParam(name string) string {
 	if c.query == nil {
 		c.query = c.req.URL.Query()
 	}
 	return c.query.Get(name)
 }
 
-func (c *BaseCtx) QueryParams() url.Values {
+func (c *VCtx) QueryParams() url.Values {
 	if c.query == nil {
 		c.query = c.req.URL.Query()
 	}
@@ -185,15 +185,15 @@ func (c *BaseCtx) QueryParams() url.Values {
 	return c.query
 }
 
-func (c *BaseCtx) QueryString() string {
+func (c *VCtx) QueryString() string {
 	return c.req.URL.RawQuery
 }
 
-func (c *BaseCtx) FormValue(name string) string {
+func (c *VCtx) FormValue(name string) string {
 	return c.req.FormValue(name)
 }
 
-func (c *BaseCtx) FormParams() (url.Values, error) {
+func (c *VCtx) FormParams() (url.Values, error) {
 	if strings.HasPrefix(c.req.Header.Get(HeaderContentType), MIMEMultipartForm) {
 		if err := c.req.ParseMultipartForm(defaultMemory); err != nil {
 			return nil, err
@@ -206,17 +206,17 @@ func (c *BaseCtx) FormParams() (url.Values, error) {
 	return c.req.Form, nil
 }
 
-func (c *BaseCtx) FormFile(name string) (*multipart.FileHeader, error) {
+func (c *VCtx) FormFile(name string) (*multipart.FileHeader, error) {
 	_, fh, err := c.req.FormFile(name)
 	return fh, err
 }
 
-func (c *BaseCtx) MultipartForm() (*multipart.Form, error) {
+func (c *VCtx) MultipartForm() (*multipart.Form, error) {
 	err := c.req.ParseMultipartForm(defaultMemory)
 	return c.req.MultipartForm, err
 }
 
-func (c *BaseCtx) File(file string) (err error) {
+func (c *VCtx) File(file string) (err error) {
 	f, err := os.Open(file)
 	if err != nil {
 		return NotFoundHandler(c.fact)
@@ -239,32 +239,32 @@ func (c *BaseCtx) File(file string) (err error) {
 	return
 }
 
-func (c *BaseCtx) Attachment(file, name string) error {
+func (c *VCtx) Attachment(file, name string) error {
 	return c.contentDisposition(file, name, "attachment")
 }
 
-func (c *BaseCtx) Inline(file, name string) error {
+func (c *VCtx) Inline(file, name string) error {
 	return c.contentDisposition(file, name, "inline")
 }
 
-func (c *BaseCtx) contentDisposition(file, name, dispositionType string) error {
+func (c *VCtx) contentDisposition(file, name, dispositionType string) error {
 	c.Resp().Header().Set(HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", dispositionType, name))
 	return c.File(file)
 }
 
-func (c *BaseCtx) Cookie(name string) (*http.Cookie, error) {
+func (c *VCtx) Cookie(name string) (*http.Cookie, error) {
 	return c.req.Cookie(name)
 }
 
-func (c *BaseCtx) SetCookie(cookie *http.Cookie) {
+func (c *VCtx) SetCookie(cookie *http.Cookie) {
 	http.SetCookie(c.Resp(), cookie)
 }
 
-func (c *BaseCtx) Cookies() []*http.Cookie {
+func (c *VCtx) Cookies() []*http.Cookie {
 	return c.req.Cookies()
 }
 
-func (c *BaseCtx) JSON(code int, val interface{}) error {
+func (c *VCtx) JSON(code int, val interface{}) error {
 	bs, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -273,11 +273,11 @@ func (c *BaseCtx) JSON(code int, val interface{}) error {
 	return c.JSONBlob(code, bs)
 }
 
-func (c *BaseCtx) JSONBlob(code int, bs []byte) error {
+func (c *VCtx) JSONBlob(code int, bs []byte) error {
 	return c.Blob(code, MIMEApplicationJSONCharsetUTF8, bs)
 }
 
-func (c *BaseCtx) JSONP(code int, callback string, val interface{}) error {
+func (c *VCtx) JSONP(code int, callback string, val interface{}) error {
 	bs, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -285,7 +285,7 @@ func (c *BaseCtx) JSONP(code int, callback string, val interface{}) error {
 	return c.JSONPBlob(code, callback, bs)
 }
 
-func (c *BaseCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
+func (c *VCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
 	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
 	c.resp.WriteHeader(code)
 	if _, err = c.resp.Write([]byte(callback + "(")); err != nil {
@@ -298,22 +298,22 @@ func (c *BaseCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
 	return
 }
 
-func (c *BaseCtx) Blob(code int, contentType string, bs []byte) (err error) {
+func (c *VCtx) Blob(code int, contentType string, bs []byte) (err error) {
 	c.writeContentType(contentType)
 	c.resp.WriteHeader(code)
 	_, err = c.resp.Write(bs)
 	return
 }
 
-func (c *BaseCtx) HTMLBlob(code int, bs []byte) error {
+func (c *VCtx) HTMLBlob(code int, bs []byte) error {
 	return c.Blob(code, MIMETextHTMLCharsetUTF8, bs)
 }
 
-func (c *BaseCtx) HTML(code int, html string) error {
+func (c *VCtx) HTML(code int, html string) error {
 	return c.HTMLBlob(code, []byte(html))
 }
 
-func (c *BaseCtx) XML(code int, i interface{}) (err error) {
+func (c *VCtx) XML(code int, i interface{}) (err error) {
 	b, err := xml.Marshal(i)
 	if err != nil {
 		return
@@ -321,7 +321,7 @@ func (c *BaseCtx) XML(code int, i interface{}) (err error) {
 	return c.XMLBlob(code, b)
 }
 
-func (c *BaseCtx) XMLBlob(code int, b []byte) (err error) {
+func (c *VCtx) XMLBlob(code int, b []byte) (err error) {
 	c.writeContentType(MIMEApplicationXMLCharsetUTF8)
 	c.resp.WriteHeader(code)
 	if _, err = c.resp.Write([]byte(xml.Header)); err != nil {
@@ -331,38 +331,38 @@ func (c *BaseCtx) XMLBlob(code int, b []byte) (err error) {
 	return
 }
 
-func (c *BaseCtx) Stream(code int, contentType string, r io.Reader) (err error) {
+func (c *VCtx) Stream(code int, contentType string, r io.Reader) (err error) {
 	c.writeContentType(contentType)
 	c.resp.WriteHeader(code)
 	_, err = io.Copy(c.resp, r)
 	return
 }
 
-func (c *BaseCtx) String(code int, str string) error {
+func (c *VCtx) String(code int, str string) error {
 	return c.Blob(code, MIMETextPlainCharsetUTF8, []byte(str))
 }
 
-func (c *BaseCtx) Stringf(code int, format string, v ...interface{}) error {
+func (c *VCtx) Stringf(code int, format string, v ...interface{}) error {
 	return c.String(code, fmt.Sprintf(format, v...))
 }
 
-func (c *BaseCtx) Get(key string) interface{} {
+func (c *VCtx) Get(key string) interface{} {
 	return c.store[key]
 }
 
-func (c *BaseCtx) Set(key string, val interface{}) {
+func (c *VCtx) Set(key string, val interface{}) {
 	if c.store == nil {
 		c.store = make(M)
 	}
 	c.store[key] = val
 }
 
-func (c *BaseCtx) NoContent(code int) error {
+func (c *VCtx) NoContent(code int) error {
 	c.resp.WriteHeader(code)
 	return nil
 }
 
-func (c *BaseCtx) Redirect(code int, url string) error {
+func (c *VCtx) Redirect(code int, url string) error {
 	if code < 300 || code > 308 {
 		return ErrInvalidRedirectCode
 	}
@@ -371,14 +371,14 @@ func (c *BaseCtx) Redirect(code int, url string) error {
 	return nil
 }
 
-func (c *BaseCtx) Twig() *Twig {
+func (c *VCtx) Twig() *Twig {
 	return c.twig
 }
 
-func (c *BaseCtx) Logger() Logger {
+func (c *VCtx) Logger() Logger {
 	return c.twig.Logger
 }
 
-func (c *BaseCtx) Error(e error) {
+func (c *VCtx) Error(e error) {
 	c.twig.HttpErrorHandler(e, c.fact)
 }

@@ -122,7 +122,7 @@ func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
 
 type MuxerCtx interface {
 	Release()
-	ResetHttp(http.ResponseWriter, *http.Request)
+	reset(http.ResponseWriter, *http.Request)
 	Handler() HandlerFunc
 }
 
@@ -131,7 +131,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := t.Muxer.Lookup(r.Method, GetReqPath(r), r)
 
 	mc := c.(MuxerCtx)
-	mc.ResetHttp(w, r)
+	mc.reset(w, r)
 
 	defer mc.Release()
 
