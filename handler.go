@@ -41,7 +41,7 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 }
 
 // 中间件包装器
-func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
+func Merge(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {
 		return handler
 	}
@@ -72,14 +72,15 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
+type info struct {
+	Title  string
+	Path   string
+	Url    string
+	Params UrlParams
+}
+
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
-	type info struct {
-		Title  string
-		Path   string
-		Url    string
-		Params map[string]string
-	}
 
 	i := &info{
 		Title:  "Hello Twig!",

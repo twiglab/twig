@@ -1,5 +1,5 @@
 package twig
 
 const (
-	Version = "0.1.dev"
+	Version = "0.2.dev"
 )
