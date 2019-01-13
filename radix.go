@@ -192,11 +192,24 @@ func (c *radixTreeCtx) Close() error {
 }
 
 func (c *radixTreeCtx) Param(name string) string {
+	for i, n := range c.pnames {
+		if i < len(c.pvalues) {
+			if n == name {
+				return c.pvalues[i]
+			}
+		}
+	}
 	return ""
 }
 
 func (c *radixTreeCtx) Params() UrlParams {
-	return nil
+	pms := make(UrlParams)
+	for i, n := range c.pnames {
+		if i < len(c.pvalues) {
+			pms[n] = c.pvalues[i]
+		}
+	}
+	return pms
 }
 
 type RadixTree struct {
@@ -507,12 +520,8 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 
 func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
 	c := r.pool.Get().(*radixTreeCtx)
-
 	r.Find(method, path, c)
-	//c.SetRoutes(r.routes)
-
-	//h := c.Handler()
-	//c.SetHandler(Enhance(h, r.m))
+	c.handler = Enhance(c.handler, r.m)
 
 	return c
 }
