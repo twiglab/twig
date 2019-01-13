@@ -58,9 +58,11 @@ func TODO() *Twig {
 		name:    "main",
 		plugins: make(map[string]Plugin),
 	}
-	t.pool.New = func() interface{} {
-		return t.NewCtx(nil, nil)
-	}
+	/*
+		t.pool.New = func() interface{} {
+			return t.NewCtx(nil, nil)
+		}
+	*/
 
 	t.
 		WithServer(DefaultServant()).
@@ -123,22 +125,29 @@ func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
 	return
 }
 
+type MuxerCtx interface {
+	Close() error
+	ResetHttp(http.ResponseWriter, *http.Request)
+	Handler() HandlerFunc
+}
+
 // ServeHTTP 实现`http.Handler`接口
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := t.pool.Get().(*ctx) // pool 中获取Ctx
-	c.Reset(w, r)            // 重置Ctx，放入当前的Resp和Req , Ctx是可以重用的
+	c := t.Muxer.Lookup(r.Method, GetReqPath(r), r)
+
+	mc := c.(MuxerCtx)
+	mc.ResetHttp(w, r)
+	defer mc.Close()
 
 	h := Enhance(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
-		t.Muxer.Lookup(r.Method, GetReqPath(r), r, c) // 路由对当前Ctx实现装配
-		handler := Enhance(c.Handler(), t.mid)        // 处理Twig级中间件
+		// t.Muxer.Lookup(r.Method, GetReqPath(r), r, c) // 路由对当前Ctx实现装配
+		handler := Enhance(mc.Handler(), t.mid) // 处理Twig级中间件
 		return handler(ctx)
 	}, t.pre)
 
 	if err := h(c); err != nil { // 链式调用，如果出错，交给Twig的HttpErrorHandler处理
 		t.HttpErrorHandler(err, c)
 	}
-
-	t.pool.Put(c) // 交还Ctx，后续复用，Http处理过程结束
 }
 
 // Start Cycler#Start
@@ -163,6 +172,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 
 // 面向第三方路由，提供Ctx的创建功能
 // 注意：Twig 不管理第三方路由使用的Ctx，只负责创建，不负责回收
+/*
 func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
 	return &ctx{
 		req:     r,
@@ -173,15 +183,7 @@ func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
 		handler: NotFoundHandler,
 	}
 }
-
-func (t *Twig) AcquireCtx() Ctx {
-	c := t.pool.Get().(*ctx)
-	return c
-}
-
-func (t *Twig) ReleaseCtx(c Ctx) {
-	t.pool.Put(c)
-}
+*/
 
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
 	return t.Muxer.AddHandler(method, path, handler, m...)

@@ -12,7 +12,7 @@ type Register interface {
 
 // Lookuper 接口
 type Lookuper interface {
-	Lookup(string, string, *http.Request, MCtx)
+	Lookup(string, string, *http.Request) Ctx
 }
 
 // Muxer 接口

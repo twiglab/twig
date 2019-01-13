@@ -72,14 +72,15 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
+type info struct {
+	Title  string
+	Path   string
+	Url    string
+	Params UrlParams
+}
+
 // HelloTwig! ~~
 func HelloTwig(c Ctx) error {
-	type info struct {
-		Title  string
-		Path   string
-		Url    string
-		Params map[string]string
-	}
 
 	i := &info{
 		Title:  "Hello Twig!",

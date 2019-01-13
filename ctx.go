@@ -69,7 +69,7 @@ type Ctx interface {
 	String(int, string) error
 	Stringf(int, string, ...interface{}) error
 
-	URL(string, ...interface{}) string
+	//URL(string, ...interface{}) string
 
 	Cookie(string) (*http.Cookie, error)
 	SetCookie(*http.Cookie)
@@ -84,46 +84,12 @@ type Ctx interface {
 	Logger() Logger
 }
 
-// MCtx 接口用于Twig内部管理，Twig受到请求后，通过MCtx和Muxer交互
-type MCtx interface {
-	Twig() *Twig
-	Logger() Logger
-
-	SetHandler(HandlerFunc)
-	Handler() HandlerFunc
-
-	SetPath(string)
-	Reset(http.ResponseWriter, *http.Request)
-
-	SetParamNames([]string)
-	SetParamValues([]string)
-	ParamNames() []string
-	ParamValues() []string
-
-	SetRoutes(map[string]Route)
-}
-
 type ctx struct {
-	req  *http.Request
-	resp *ResponseWarp
-
-	path string
-
-	pnames  []string
-	pvalues []string
-
-	query   url.Values
-	handler HandlerFunc
-
-	t *Twig
-
+	req   *http.Request
+	resp  *ResponseWarp
+	query url.Values
 	store Map
-
-	routes map[string]Route
-}
-
-func (c *ctx) Twig() *Twig {
-	return c.t
+	twig  *Twig
 }
 
 func (c *ctx) writeContentType(value string) {
@@ -182,37 +148,6 @@ func (c *ctx) RealIP() string {
 	}
 	ra, _, _ := net.SplitHostPort(c.req.RemoteAddr)
 	return ra
-}
-
-func (c *ctx) Path() string {
-	return c.path
-}
-
-func (c *ctx) SetPath(p string) {
-	c.path = p
-}
-
-func (c *ctx) Param(name string) string {
-	for i, n := range c.pnames {
-		if i < len(c.pvalues) {
-			if n == name {
-				return c.pvalues[i]
-			}
-		}
-	}
-	return ""
-}
-
-func (c *ctx) Params() UrlParams {
-	pms := make(UrlParams)
-
-	for i, n := range c.pnames {
-		if i < len(c.pvalues) {
-			pms[n] = c.pvalues[i]
-		}
-	}
-
-	return pms
 }
 
 func (c *ctx) QueryParam(name string) string {
@@ -416,59 +351,53 @@ func (c *ctx) Redirect(code int, url string) error {
 	return nil
 }
 
-func (c *ctx) Error(err error) {
-	c.t.HttpErrorHandler(err, c)
-}
-
-func (c *ctx) Handler() HandlerFunc {
-	return c.handler
-}
-
-func (c *ctx) SetHandler(h HandlerFunc) {
-	c.handler = h
-}
-
-func (c *ctx) Logger() Logger {
-	return c.t.Logger
-}
-
-func (c *ctx) SetParamNames(n []string) {
-	c.pnames = n
-}
-
-func (c *ctx) SetParamValues(v []string) {
-	c.pvalues = v
-}
-
-func (c *ctx) ParamNames() []string {
-	return c.pnames
-}
-
-func (c *ctx) ParamValues() []string {
-	return c.pvalues
-}
-
-func (c *ctx) Reset(w http.ResponseWriter, r *http.Request) {
+func (c *ctx) ResetHttp(w http.ResponseWriter, r *http.Request) {
 	c.req = r
 	c.resp.reset(w)
 	c.query = nil
-	c.handler = NotFoundHandler
 	c.store = nil
-	c.path = ""
-	c.pnames = nil
-
-	c.routes = nil
 }
 
-func (c *ctx) SetRoutes(rs map[string]Route) {
-	c.routes = rs
+func (c *ctx) Error(e error) {
+	c.twig.HttpErrorHandler(e, c)
 }
 
-func (c *ctx) URL(name string, params ...interface{}) string {
-	for _, route := range c.routes {
-		if route.Name() == name {
-			return Reverse(route.Path(), params...)
-		}
+func (c *ctx) Logger() Logger {
+	return c.twig.Logger
+}
+
+func (c *ctx) Twig() *Twig {
+	return c.twig
+}
+
+func NewCtx(t *Twig) *ctx {
+	return &ctx{
+		resp: NewResponseWarp(nil),
+		twig: t,
 	}
+}
+
+func (c *ctx) Param(name string) string {
 	return ""
 }
+
+func (c *ctx) Params() UrlParams {
+	return nil
+}
+
+func (c *ctx) Path() string {
+	return ""
+}
+
+/*
+type MCtx interface {
+	Twig() *Twig
+	Logger() Logger
+	Error(error)
+
+	Handler() HandlerFunc
+	Path(string)
+	Params() UrlParams
+	Param(string) string
+}
+*/

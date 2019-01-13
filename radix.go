@@ -12,7 +12,10 @@
 
 package twig
 
-import "net/http"
+import (
+	"net/http"
+	"sync"
+)
 
 type kind uint8 // 节点类型
 type children []*node
@@ -152,20 +155,68 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 	return NotFoundHandler
 }
 
+type radixTreeCtx struct {
+	*ctx
+
+	handler HandlerFunc
+	path    string
+
+	pnames  []string
+	pvalues []string
+}
+
+func (c *radixTreeCtx) Path() string {
+	return c.path
+}
+
+func (c *radixTreeCtx) Handler() HandlerFunc {
+	return c.handler
+}
+
+func (c *radixTreeCtx) Close() error {
+	return nil
+}
+
+func (c *radixTreeCtx) Param(name string) string {
+	return ""
+}
+
+func (c *radixTreeCtx) Params() UrlParams {
+	return nil
+}
+
 type RadixTree struct {
 	tree   *node
 	routes map[string]Route
 	m      []MiddlewareFunc
 	t      *Twig
+
+	pool     sync.Pool
+	maxParam int
 }
 
 func NewRadixTree() *RadixTree {
-	return &RadixTree{
+	r := &RadixTree{
 		tree: &node{
 			methodHandler: new(methodHandler),
 		},
-		routes: map[string]Route{},
+		routes:   map[string]Route{},
+		maxParam: 0,
 	}
+
+	r.pool.New = func() interface{} {
+		return r.newCtx(r.t)
+	}
+
+	return r
+}
+
+func (r *RadixTree) newCtx(t *Twig) *radixTreeCtx {
+	ctx := &radixTreeCtx{
+		ctx: NewCtx(r.t),
+	}
+
+	return ctx
 }
 
 func (r *RadixTree) Attach(t *Twig) {
@@ -212,10 +263,9 @@ func (r *RadixTree) Add(method, path string, h HandlerFunc) {
 
 func (r *RadixTree) insert(method, path string, h HandlerFunc, t kind, ppath string, pnames []string) {
 	// 调整url最大参数
-	// 优化: MaxParam为*整个*服务器中最大的路由参数个数，后续分配Ctx时，按照最大参数分配参数值
 	l := len(pnames)
-	if l > MaxParam {
-		MaxParam = l
+	if l > r.maxParam {
+		r.maxParam = l
 	}
 
 	cn := r.tree // Current node as root
@@ -300,18 +350,20 @@ func (r *RadixTree) insert(method, path string, h HandlerFunc, t kind, ppath str
 	}
 }
 
-func (r *RadixTree) Find(method, path string, ctx MCtx) {
-	ctx.SetPath(path)
+func (r *RadixTree) Find(method, path string, ctx *radixTreeCtx) {
+	ctx.path = path
+	//ctx.SetPath(path)
 	cn := r.tree // Current node as root
 
 	var (
-		search  = path
-		child   *node               // Child node
-		n       int                 // Param counter
-		nk      kind                // Next kind
-		nn      *node               // Next node
-		ns      string              // Next search
-		pvalues = ctx.ParamValues() // Use the internal slice so the interface can keep the illusion of a dynamic slice
+		search = path
+		child  *node  // Child node
+		n      int    // Param counter
+		nk     kind   // Next kind
+		nn     *node  // Next node
+		ns     string // Next search
+		//pvalues = ctx.ParamValues() // Use the internal slice so the interface can keep the illusion of a dynamic slice
+		pvalues = ctx.pvalues // Use the internal slice so the interface can keep the illusion of a dynamic slice
 	)
 
 	// Search order static > param > any
@@ -411,23 +463,24 @@ func (r *RadixTree) Find(method, path string, ctx MCtx) {
 		break
 	}
 
-	ctx.SetHandler(cn.findHandler(method))
-	ctx.SetPath(cn.ppath)
-	ctx.SetParamNames(cn.pnames)
+	ctx.handler = cn.findHandler(method)
+	ctx.path = cn.ppath
+	ctx.pnames = cn.pnames
 
-	if ctx.Handler() == nil {
-		ctx.SetHandler(cn.checkMethodNotAllowed())
+	if ctx.handler == nil {
+		ctx.handler = cn.checkMethodNotAllowed()
 
 		if cn = cn.findChildByKind(akind); cn == nil {
 			return
 		}
 		if h := cn.findHandler(method); h != nil {
-			ctx.SetHandler(h)
+			ctx.handler = h
 		} else {
-			ctx.SetHandler(cn.checkMethodNotAllowed())
+			ctx.handler = cn.checkMethodNotAllowed()
 		}
-		ctx.SetPath(cn.ppath)
-		ctx.SetParamNames(cn.pnames)
+
+		ctx.path = cn.ppath
+		ctx.pnames = cn.pnames
 		pvalues[len(cn.pnames)-1] = ""
 	}
 
@@ -438,12 +491,16 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 	r.m = append(r.m, m...)
 }
 
-func (r *RadixTree) Lookup(method, path string, req *http.Request, c MCtx) {
-	r.Find(method, path, c)
-	c.SetRoutes(r.routes)
+func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
+	c := r.pool.Get().(*radixTreeCtx)
 
-	h := c.Handler()
-	c.SetHandler(Enhance(h, r.m))
+	r.Find(method, path, c)
+	//c.SetRoutes(r.routes)
+
+	//h := c.Handler()
+	//c.SetHandler(Enhance(h, r.m))
+
+	return c
 }
 
 func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Route {
