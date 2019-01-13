@@ -187,6 +187,7 @@ func (c *radixTreeCtx) Handler() HandlerFunc {
 }
 
 func (c *radixTreeCtx) Close() error {
+	c.tree.releaseCtx(c)
 	return nil
 }
 
@@ -226,6 +227,10 @@ func NewRadixTree() *RadixTree {
 
 func (r *RadixTree) newCtx(t *Twig) *radixTreeCtx {
 	return newRadixTreeCtx(t, r)
+}
+
+func (r *RadixTree) releaseCtx(c *radixTreeCtx) {
+	r.pool.Put(c)
 }
 
 func (r *RadixTree) Attach(t *Twig) {
