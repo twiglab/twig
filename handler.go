@@ -41,7 +41,7 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 }
 
 // 中间件包装器
-func Enhance(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
+func Merge(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {
 		return handler
 	}

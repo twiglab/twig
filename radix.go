@@ -521,13 +521,13 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
 	c := r.pool.Get().(*radixTreeCtx)
 	r.Find(method, path, c)
-	c.handler = Enhance(c.handler, r.m)
+	c.handler = Merge(c.handler, r.m)
 
 	return c
 }
 
 func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Route {
-	handler := Enhance(h, m)
+	handler := Merge(h, m)
 	r.Add(method, path, handler)
 	rd := &NamedRoute{
 		M: method,

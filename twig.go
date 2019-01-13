@@ -132,10 +132,11 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mc := c.(MuxerCtx)
 	mc.ResetHttp(w, r)
+
 	defer mc.Close()
 
-	h := Enhance(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
-		handler := Enhance(mc.Handler(), t.mid) // 处理Twig级中间件
+	h := Merge(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
+		handler := Merge(mc.Handler(), t.mid) // 处理Twig级中间件
 		return handler(ctx)
 	}, t.pre) // 处理Pre中间件
 
@@ -163,21 +164,6 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 
 	return t.Server.Shutdown(ctx)
 }
-
-// 面向第三方路由，提供Ctx的创建功能
-// 注意：Twig 不管理第三方路由使用的Ctx，只负责创建，不负责回收
-/*
-func (t *Twig) NewCtx(w http.ResponseWriter, r *http.Request) Ctx {
-	return &ctx{
-		req:     r,
-		resp:    NewResponseWarp(w),
-		t:       t,
-		store:   make(Map),
-		pvalues: make([]string, MaxParam),
-		handler: NotFoundHandler,
-	}
-}
-*/
 
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
 	return t.Muxer.AddHandler(method, path, handler, m...)
