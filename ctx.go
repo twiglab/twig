@@ -380,6 +380,5 @@ func (c *BaseCtx) Logger() Logger {
 }
 
 func (c *BaseCtx) Error(e error) {
-	fmt.Println(c.fact.Path())
 	c.twig.HttpErrorHandler(e, c.fact)
 }
