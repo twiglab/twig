@@ -94,9 +94,8 @@ type BaseCtx struct {
 
 func NewBaseCtx(t *Twig) *BaseCtx {
 	return &BaseCtx{
-		resp:  NewResponseWarp(nil),
-		twig:  t,
-		store: make(Map),
+		resp: NewResponseWarp(nil),
+		twig: t,
 	}
 }
 
@@ -366,16 +365,16 @@ func (c *BaseCtx) Redirect(code int, url string) error {
 	return nil
 }
 
-func (c *BaseCtx) Error(e error) {
-	c.twig.HttpErrorHandler(e, c)
+func (c *BaseCtx) Twig() *Twig {
+	return c.twig
 }
 
 func (c *BaseCtx) Logger() Logger {
 	return c.twig.Logger
 }
 
-func (c *BaseCtx) Twig() *Twig {
-	return c.twig
+func (c *BaseCtx) Error(e error) {
+	c.twig.HttpErrorHandler(e, c)
 }
 
 // Param 自定义路由中必须覆盖这个方法

@@ -163,6 +163,19 @@ type radixTreeCtx struct {
 
 	pnames  []string
 	pvalues []string
+
+	tree *RadixTree
+}
+
+func newRadixTreeCtx(t *Twig, tree *RadixTree) *radixTreeCtx {
+	c := &radixTreeCtx{
+		BaseCtx: NewBaseCtx(t),
+		pvalues: make([]string, tree.maxParam),
+		tree:    tree,
+		handler: NotFoundHandler,
+	}
+
+	return c
 }
 
 func (c *radixTreeCtx) Path() string {
@@ -212,11 +225,7 @@ func NewRadixTree() *RadixTree {
 }
 
 func (r *RadixTree) newCtx(t *Twig) *radixTreeCtx {
-	ctx := &radixTreeCtx{
-		BaseCtx: NewBaseCtx(r.t),
-	}
-
-	return ctx
+	return newRadixTreeCtx(t, r)
 }
 
 func (r *RadixTree) Attach(t *Twig) {
