@@ -107,11 +107,13 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 }
 
 // UserPlugin 加入Plugin
-func (t *Twig) UsePlugin(plugins ...Plugin) {
+func (t *Twig) UsePlugin(plugins ...Plugin) *Twig {
 	for _, plugin := range plugins {
 		Attach(plugin, t)
 		t.plugins[plugin.ID()] = plugin
 	}
+
+	return t
 }
 
 // Plugin 获取Plugin
