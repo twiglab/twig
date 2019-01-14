@@ -135,6 +135,12 @@ func (c *Cfg) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg 
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
+func (c *Cfg) Mount(mount Mounter) *Cfg {
+	mount.Mount(c.R)
+	c.N = nil
+	return c
+}
+
 func (c *Cfg) Done() {
 	c.R = nil
 	c.N = nil
