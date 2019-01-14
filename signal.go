@@ -1,8 +1,10 @@
 package twig
 
 import (
+	"context"
 	"os"
 	"os/signal"
+	"time"
 )
 
 // Reloader 描述一个可以被重新加载的对象
@@ -23,10 +25,17 @@ func Quit() SignalFunc {
 	}
 }
 
-// Nop
-func Nop() SignalFunc {
+// GracefulShutdown
+func GracefulShutdown(t *Twig, timeout time.Duration) SignalFunc {
 	return func(_ os.Signal) bool {
-		return false
+		ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
+		defer cancel()
+
+		if err := t.Shutdown(ctx); err != nil {
+			t.Logger.Println(err)
+		}
+
+		return true
 	}
 }
 
