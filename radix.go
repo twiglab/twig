@@ -13,6 +13,8 @@
 package twig
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"sync"
 )
@@ -210,6 +212,13 @@ func (c *radixTreeCtx) Params() UrlParams {
 		}
 	}
 	return pms
+}
+
+func (c *radixTreeCtx) URL(name string, i ...interface{}) string {
+	if route, ok := c.tree.routes[name]; ok {
+		return reverse(route.Path(), i...)
+	}
+	return ""
 }
 
 type RadixTree struct {
@@ -537,4 +546,22 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 	}
 	r.routes[rd.ID()] = rd
 	return rd
+}
+
+func reverse(path string, params ...interface{}) string {
+	uri := new(bytes.Buffer)
+	ln := len(params)
+	n := 0
+	for i, l := 0, len(path); i < l; i++ {
+		if path[i] == ':' && n < ln {
+			for ; i < l && path[i] != '/'; i++ {
+			}
+			uri.WriteString(fmt.Sprintf("%v", params[n]))
+			n++
+		}
+		if i < l {
+			uri.WriteByte(path[i])
+		}
+	}
+	return uri.String()
 }

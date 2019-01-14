@@ -69,7 +69,7 @@ type Ctx interface {
 	String(int, string) error
 	Stringf(int, string, ...interface{}) error
 
-	//URL(string, ...interface{}) string
+	URL(string, ...interface{}) string
 
 	Cookie(string) (*http.Cookie, error)
 	SetCookie(*http.Cookie)
