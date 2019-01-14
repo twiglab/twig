@@ -7,6 +7,8 @@ import (
 	"sync"
 )
 
+const Version = "0.3.dev"
+
 type M map[string]interface{}
 
 // Identifier 标识符接口
