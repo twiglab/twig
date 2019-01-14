@@ -23,7 +23,7 @@ func main() {
 
 	api.Start()
 
-	twig.Signal(twig.GracefulShutdown(api, 15))
+	twig.Signal(twig.Graceful(api, 15))
 }
 ```
 
