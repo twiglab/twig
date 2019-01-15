@@ -39,7 +39,7 @@ type Twig struct {
 
 	Logger Logger // Logger 组件负责日志输出
 	Muxer  Muxer  // Muxer 组件负责路由处理
-	Server Server // Server 负责Http请求处理
+	Worker Worker // Worker 负责Http请求处理
 
 	Debug bool
 
@@ -62,7 +62,7 @@ func TODO() *Twig {
 	}
 
 	t.
-		WithServer(DefaultServant()).
+		WithWorker(NewWork()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())
@@ -87,9 +87,9 @@ func (t *Twig) WithMuxer(m Muxer) *Twig {
 	return t
 }
 
-func (t *Twig) WithServer(s Server) *Twig {
-	t.Server = s
-	s.Attach(t)
+func (t *Twig) WithWorker(w Worker) *Twig {
+	t.Worker = w
+	w.Attach(t)
 	return t
 }
 
@@ -157,7 +157,7 @@ func (t *Twig) Start() error {
 		Start(p)
 	}
 
-	return t.Server.Start()
+	return t.Worker.Start()
 }
 
 // Start Cycler#Shutdown
@@ -165,8 +165,8 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	for _, p := range t.plugins {
 		Shutdown(p, ctx)
 	}
-
-	return t.Server.Shutdown(ctx)
+	return t.Worker.Shutdown(ctx)
+	//t.Logger.Printf("%s(%s)\n", t.ID(), Version)
 }
 
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
