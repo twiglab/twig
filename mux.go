@@ -56,3 +56,7 @@ func (r *NamedRoute) Path() string {
 func (r *NamedRoute) SetName(name string) {
 	r.N = name
 }
+
+func (r *NamedRoute) Type() string {
+	return "handler"
+}

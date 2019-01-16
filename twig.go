@@ -16,6 +16,7 @@ type M map[string]interface{}
 type Identifier interface {
 	ID() string
 	Name() string
+	Type() string
 }
 
 // Attacher 用于设置Twig和组件之间的联系
@@ -38,9 +39,10 @@ type Namer interface {
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
-	Logger Logger // Logger 组件负责日志输出
-	Muxer  Muxer  // Muxer 组件负责路由处理
-	Worker Worker // Worker 负责Http请求处理
+	Logger   Logger   // Logger 组件负责日志输出
+	Muxer    Muxer    // Muxer 组件负责路由处理
+	Worker   Worker   // Worker 负责Http请求处理
+	Messager Messager // Messager 负责内部消息处理
 
 	Debug bool
 
@@ -67,7 +69,8 @@ func TODO() *Twig {
 		WithWorker(NewWork()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
-		WithMuxer(NewRadixTree())
+		WithMuxer(NewRadixTree()).
+		WithMessager(newEventBus())
 
 	sf := NewSonwflake()
 	t.id = strconv.FormatUint(sf.NextID(), 32)
@@ -102,6 +105,12 @@ func (t *Twig) WithWorker(w Worker) *Twig {
 	return t
 }
 
+func (t *Twig) WithMessager(m Messager) *Twig {
+	t.Messager = m
+	t.Messager.On(t.Type(), t)
+	return t
+}
+
 func (t *Twig) EnableDebug() *Twig {
 	t.Debug = true
 	return t
@@ -133,7 +142,7 @@ func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
 	return
 }
 
-type MuxerCtx interface {
+type muxerCtx interface {
 	Release()
 	reset(http.ResponseWriter, *http.Request)
 	Handler() HandlerFunc
@@ -143,7 +152,7 @@ type MuxerCtx interface {
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := t.Muxer.Lookup(r.Method, GetReqPath(r), r)
 
-	mc := c.(MuxerCtx)
+	mc := c.(muxerCtx)
 	mc.reset(w, r)
 
 	defer mc.Release()
@@ -194,6 +203,14 @@ func (t *Twig) Name() string {
 // Name Identifier#ID
 func (t *Twig) ID() (id string) {
 	return t.id
+}
+
+func (t *Twig) Type() string {
+	return "twig"
+}
+
+func (t *Twig) On(topic string, ev *Event) {
+	//~~~ comming soon ~~~
 }
 
 func (t *Twig) Config() *Cfg {

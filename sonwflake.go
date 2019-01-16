@@ -37,7 +37,7 @@ func NewSonwflake() *Sonwflake {
 	sf.startTime = toSonwflakeTime(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC))
 
 	var err error
-	if sf.machineID, err = lower16BitPrivateIP(); err != nil {
+	if sf.machineID, err = lower16BitPrivateIP(); err != nil && sf.machineID == 0 {
 		sf.machineID = uint16(rand.Uint32())
 	}
 

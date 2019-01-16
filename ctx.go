@@ -82,6 +82,8 @@ type Ctx interface {
 	Twig() *Twig
 
 	Logger() Logger
+
+	Emit(string, *Event)
 }
 
 type VCtx struct {
@@ -92,12 +94,15 @@ type VCtx struct {
 	twig  *Twig
 
 	fact Ctx
+
+	emitter Emitter
 }
 
 func NewVCtx(t *Twig) *VCtx {
 	return &VCtx{
-		resp: NewResponseWarp(nil),
-		twig: t,
+		resp:    NewResponseWarp(nil),
+		twig:    t,
+		emitter: t.Messager,
 	}
 }
 
@@ -381,4 +386,8 @@ func (c *VCtx) Logger() Logger {
 
 func (c *VCtx) Error(e error) {
 	c.twig.HttpErrorHandler(e, c.fact)
+}
+
+func (c *VCtx) Emit(topic string, msg *Event) {
+	c.emitter.Emit(topic, msg)
 }
