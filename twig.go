@@ -72,12 +72,12 @@ func TODO() *Twig {
 		WithMuxer(NewRadixTree()).
 		WithMessager(newEventBus())
 
-	sf := NewSonwflake()
-	t.id = strconv.FormatUint(sf.NextID(), 32)
+	idGen := &IdGen{
+		IdGenerator: NewSonwflake(),
+	}
+	t.id = strconv.FormatUint(idGen.NextID(), 32)
 
-	t.UsePlugin(&IdGen{
-		IdGenerator: sf,
-	})
+	t.UsePlugin(idGen)
 
 	return t
 }
