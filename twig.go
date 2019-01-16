@@ -4,10 +4,11 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 )
 
-const Version = "0.3.dev"
+const Version = "0.4.dev"
 
 type M map[string]interface{}
 
@@ -15,6 +16,7 @@ type M map[string]interface{}
 type Identifier interface {
 	ID() string
 	Name() string
+	Type() string
 }
 
 // Attacher 用于设置Twig和组件之间的联系
@@ -37,9 +39,10 @@ type Namer interface {
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
-	Logger Logger // Logger 组件负责日志输出
-	Muxer  Muxer  // Muxer 组件负责路由处理
-	Worker Worker // Worker 负责Http请求处理
+	Logger   Logger   // Logger 组件负责日志输出
+	Muxer    Muxer    // Muxer 组件负责路由处理
+	Worker   Worker   // Worker 负责Http请求处理
+	Messager Messager // Messager 负责内部消息处理
 
 	Debug bool
 
@@ -51,6 +54,7 @@ type Twig struct {
 	plugins map[string]Plugin
 
 	name string
+	id   string
 }
 
 // 创建空的Twig
@@ -65,7 +69,15 @@ func TODO() *Twig {
 		WithWorker(NewWork()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
-		WithMuxer(NewRadixTree())
+		WithMuxer(NewRadixTree()).
+		WithMessager(newEventBus())
+
+	sf := NewSonwflake()
+	t.id = strconv.FormatUint(sf.NextID(), 32)
+
+	t.UsePlugin(&IdGen{
+		IdGenerator: sf,
+	})
 
 	return t
 }
@@ -90,6 +102,12 @@ func (t *Twig) WithMuxer(m Muxer) *Twig {
 func (t *Twig) WithWorker(w Worker) *Twig {
 	t.Worker = w
 	w.Attach(t)
+	return t
+}
+
+func (t *Twig) WithMessager(m Messager) *Twig {
+	t.Messager = m
+	t.Messager.On(t.Type(), t)
 	return t
 }
 
@@ -124,7 +142,7 @@ func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
 	return
 }
 
-type MuxerCtx interface {
+type muxerCtx interface {
 	Release()
 	reset(http.ResponseWriter, *http.Request)
 	Handler() HandlerFunc
@@ -134,7 +152,7 @@ type MuxerCtx interface {
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := t.Muxer.Lookup(r.Method, GetReqPath(r), r)
 
-	mc := c.(MuxerCtx)
+	mc := c.(muxerCtx)
 	mc.reset(w, r)
 
 	defer mc.Release()
@@ -151,7 +169,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Start Cycler#Start
 func (t *Twig) Start() error {
-	t.Logger.Printf("%s(%s)\n", t.ID(), Version)
+	t.Logger.Printf("Twig@%s(id = %s ver = %s)\n", t.Name(), t.ID(), Version)
 
 	for _, p := range t.plugins {
 		Start(p)
@@ -166,7 +184,6 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 		Shutdown(p, ctx)
 	}
 	return t.Worker.Shutdown(ctx)
-	//t.Logger.Printf("%s(%s)\n", t.ID(), Version)
 }
 
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
@@ -184,8 +201,16 @@ func (t *Twig) Name() string {
 }
 
 // Name Identifier#ID
-func (t *Twig) ID() string {
-	return "Twig@" + t.name
+func (t *Twig) ID() (id string) {
+	return t.id
+}
+
+func (t *Twig) Type() string {
+	return "twig"
+}
+
+func (t *Twig) On(topic string, ev *Event) {
+	//~~~ comming soon ~~~
 }
 
 func (t *Twig) Config() *Cfg {

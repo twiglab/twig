@@ -1,20 +1,14 @@
 package middleware
 
 import (
-	"fmt"
-	"math/rand"
-	"time"
+	"strconv"
 
 	"github.com/twiglab/twig"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 type RequestIDConfig struct {
 	Skipper   Skipper
-	Generator func() string
+	Generator func(twig.Ctx) string
 }
 
 var DefaultRequestIDConfig = RequestIDConfig{
@@ -22,16 +16,9 @@ var DefaultRequestIDConfig = RequestIDConfig{
 	Generator: generator,
 }
 
-func generator() string {
-	return fmt.Sprintf("%d_%d", gen(), rnd())
-}
-
-func rnd() int {
-	return rand.Intn(77777)
-}
-
-func gen() int64 {
-	return time.Now().UnixNano()
+func generator(c twig.Ctx) string {
+	gen := twig.GetIdGenerator(c)
+	return strconv.FormatUint(gen.NextID(), 32)
 }
 
 func RequestIDWithConfig(config RequestIDConfig) twig.MiddlewareFunc {
@@ -53,7 +40,7 @@ func RequestIDWithConfig(config RequestIDConfig) twig.MiddlewareFunc {
 			resp := c.Resp()
 
 			if id := req.Header.Get(twig.HeaderXRequestID); id == "" {
-				resp.Header().Set(twig.HeaderXRequestID, config.Generator())
+				resp.Header().Set(twig.HeaderXRequestID, config.Generator(c))
 			}
 
 			return next(c)

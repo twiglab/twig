@@ -31,3 +31,7 @@ func (p *DummyPlugin) Name() string {
 func (p *DummyPlugin) ID() string {
 	return p.PluginID
 }
+
+func (p *DummyPlugin) Type() string {
+	return "plugin"
+}
