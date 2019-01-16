@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const Version = "0.3.dev"
+const Version = "0.4.dev"
 
 type M map[string]interface{}
 
@@ -160,7 +160,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Start Cycler#Start
 func (t *Twig) Start() error {
-	t.Logger.Printf("Twig@%s(%s)\n", t.ID(), Version)
+	t.Logger.Printf("Twig@%s(id = %s ver = %s)\n", t.Name(), t.ID(), Version)
 
 	for _, p := range t.plugins {
 		Start(p)
