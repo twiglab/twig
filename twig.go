@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 )
 
@@ -51,6 +52,7 @@ type Twig struct {
 	plugins map[string]Plugin
 
 	name string
+	id   string
 }
 
 // 创建空的Twig
@@ -66,6 +68,13 @@ func TODO() *Twig {
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())
+
+	sf := NewSonwflake()
+	t.id = strconv.FormatUint(sf.NextID(), 32)
+
+	t.UsePlugin(&IdGen{
+		IdGenerator: sf,
+	})
 
 	return t
 }
@@ -151,7 +160,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Start Cycler#Start
 func (t *Twig) Start() error {
-	t.Logger.Printf("%s(%s)\n", t.ID(), Version)
+	t.Logger.Printf("Twig@%s(%s)\n", t.ID(), Version)
 
 	for _, p := range t.plugins {
 		Start(p)
@@ -166,7 +175,6 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 		Shutdown(p, ctx)
 	}
 	return t.Worker.Shutdown(ctx)
-	//t.Logger.Printf("%s(%s)\n", t.ID(), Version)
 }
 
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
@@ -184,8 +192,8 @@ func (t *Twig) Name() string {
 }
 
 // Name Identifier#ID
-func (t *Twig) ID() string {
-	return "Twig@" + t.name
+func (t *Twig) ID() (id string) {
+	return t.id
 }
 
 func (t *Twig) Config() *Cfg {
