@@ -1,6 +1,7 @@
 package twig
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -270,24 +271,43 @@ func (c *VCtx) Cookies() []*http.Cookie {
 }
 
 func (c *VCtx) JSON(code int, val interface{}) error {
-	bs, err := json.Marshal(val)
-	if err != nil {
-		return err
+	enc := json.NewEncoder(c.resp)
+	if c.twig.Debug {
+		enc.SetIndent("", "\t")
 	}
 
-	return c.JSONBlob(code, bs)
+	c.writeContentType(MIMEApplicationJSONCharsetUTF8)
+	c.resp.WriteHeader(code)
+	return enc.Encode(val)
 }
 
 func (c *VCtx) JSONBlob(code int, bs []byte) error {
 	return c.Blob(code, MIMEApplicationJSONCharsetUTF8, bs)
 }
 
-func (c *VCtx) JSONP(code int, callback string, val interface{}) error {
-	bs, err := json.Marshal(val)
-	if err != nil {
-		return err
+func (c *VCtx) JSONP(code int, callback string, val interface{}) (err error) {
+	buf := new(bytes.Buffer)
+	enc := json.NewEncoder(buf)
+	if c.twig.Debug {
+		enc.SetIndent("", "\t")
 	}
-	return c.JSONPBlob(code, callback, bs)
+	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
+	c.resp.WriteHeader(code)
+
+	if _, err = buf.WriteString(callback + "("); err != nil {
+		return
+	}
+
+	if err = enc.Encode(val); err != nil {
+		return
+	}
+
+	if _, err = buf.WriteString(");"); err != nil {
+		return
+	}
+
+	_, err = buf.WriteTo(c.resp)
+	return
 }
 
 func (c *VCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
