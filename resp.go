@@ -34,10 +34,6 @@ func (r *ResponseWarp) Flush() {
 	r.Writer.(http.Flusher).Flush()
 }
 
-func (r *ResponseWarp) CloseNotify() <-chan bool {
-	return r.Writer.(http.CloseNotifier).CloseNotify()
-}
-
 func (r *ResponseWarp) Before(fn RespCallBack) {
 	r.before = append(r.before, fn)
 }
