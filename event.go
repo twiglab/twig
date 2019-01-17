@@ -1,58 +1,73 @@
 package twig
 
-import "container/list"
+import (
+	"container/list"
+)
 
-type EventFunc func(*Event)
-
-type Emitter interface {
-	Emit(string, *Event)
+type EventReceiver interface {
+	On(EventRegister)
 }
 
-type Receivre interface {
-	On(string, *Event)
+type EventHandlerFunc func(string, *Event)
+
+func (eh EventHandlerFunc) OnEvent(topic string, ev *Event) {
+	eh(topic, ev)
+}
+
+type EventHandler interface {
+	Handler(string, *Event)
 }
 
 type Event struct {
 	Sync int
 	Body interface{}
+	Kind int
+}
+
+type EventEmitter interface {
+	Emit(string, *Event)
+}
+
+type EventRegister interface {
+	On(string, EventHandler) EventRegister
 }
 
 type Messager interface {
-	Emitter
-	On(string, Receivre)
+	EventEmitter
+	EventRegister
 }
 
 type events map[string]list.List
-
-type eBus struct {
+type ebox struct {
 	eventList events
 }
 
-func newEventBus() *eBus {
-	return &eBus{
+func newbox() *ebox {
+	return &ebox{
 		eventList: make(events),
 	}
 }
 
-func (e *eBus) On(event string, r Receivre) {
-	topic, ok := e.eventList[event]
-
-	if !ok {
-		topic = list.List{}
-	}
-
-	topic.PushBack(r)
-	e.eventList[event] = topic
-}
-
-func (e *eBus) Emit(event string, msg *Event) {
+func (b *ebox) Emit(event string, msg *Event) {
 	go func() {
-		if topic, ok := e.eventList[event]; ok {
+		if topic, ok := b.eventList[event]; ok {
 			for el := topic.Front(); el != nil; el = el.Next() {
-				r := el.Value.(Receivre)
-				r.On(event, msg)
+				r := el.Value.(EventHandler)
+				r.Handler(event, msg)
 			}
-		} else {
 		}
 	}()
+}
+
+func (b *ebox) On(topic string, eh EventHandler) EventRegister {
+	hs, ok := b.eventList[topic]
+
+	if !ok {
+		hs = list.List{}
+	}
+
+	hs.PushBack(eh)
+	b.eventList[topic] = hs
+
+	return b
 }

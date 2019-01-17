@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const Version = "0.4.dev"
+const Version = "0.5.dev"
 
 type M map[string]interface{}
 
@@ -70,7 +70,7 @@ func TODO() *Twig {
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree()).
-		WithMessager(newEventBus())
+		WithMessager(newbox())
 
 	idGen := &IdGen{
 		IdGenerator: NewSonwflake(),
@@ -107,8 +107,11 @@ func (t *Twig) WithWorker(w Worker) *Twig {
 
 func (t *Twig) WithMessager(m Messager) *Twig {
 	t.Messager = m
-	t.Messager.On(t.Type(), t)
+	t.On(t.Messager)
 	return t
+}
+
+func (t *Twig) On(reg EventRegister) {
 }
 
 func (t *Twig) EnableDebug() *Twig {
@@ -209,7 +212,7 @@ func (t *Twig) Type() string {
 	return "twig"
 }
 
-func (t *Twig) On(topic string, ev *Event) {
+func (t *Twig) OnEvent(topic string, ev *Event) {
 	//~~~ comming soon ~~~
 }
 

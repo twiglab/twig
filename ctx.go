@@ -96,7 +96,7 @@ type VCtx struct {
 
 	fact Ctx
 
-	emitter Emitter
+	emitter EventEmitter
 }
 
 func NewVCtx(t *Twig) *VCtx {
