@@ -3,28 +3,34 @@ package twig
 import (
 	"io"
 	"log"
+	"os"
 )
 
 func newLog(w io.Writer, name string) *log.Logger {
 	return log.New(w, name, log.LstdFlags|log.Lshortfile)
 }
 
-func newEventLog(w io.Writer, name string) *EventLogger {
-	return &EventLogger{
-		Logger: log.New(w, name, log.LstdFlags|log.Lshortfile),
+func newStdEventLog() *StdEventLogger {
+	return &StdEventLogger{
+		Logger: log.New(os.Stdout, "twig-", log.LstdFlags|log.Lshortfile),
 	}
 }
 
-type EventLogger struct {
-	Logger
+type StdEventLogger struct {
+	*log.Logger
+	twig *Twig
 }
 
-func (el *EventLogger) On(eg EventRegister) {
+func (el *StdEventLogger) On(eg EventRegister) {
 	eg.On("logger", el)
 }
 
-func (el *EventLogger) OnEvent(topic string, ev *Event) {
+func (el *StdEventLogger) OnEvent(topic string, ev *Event) {
 	el.Println(ev.Body)
+}
+
+func (el *StdEventLogger) Attach(t *Twig) {
+	el.twig = t
 }
 
 type Logger interface {

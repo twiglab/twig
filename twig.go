@@ -3,7 +3,6 @@ package twig
 import (
 	"context"
 	"net/http"
-	"os"
 	"sync"
 )
 
@@ -67,10 +66,10 @@ func TODO() *Twig {
 	}
 
 	t.
-		WithWorker(NewWork()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newEventLog(os.Stdout, "twig-log-")).
-		WithMuxer(NewRadixTree())
+		WithLogger(newStdEventLog()).
+		WithMuxer(NewRadixTree()).
+		WithWorker(NewWork())
 
 	idGen := &snowflakeIdGen{
 		sonwflake: NewSnowflake(nodeid),
