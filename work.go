@@ -9,6 +9,7 @@ import (
 type Worker interface {
 	Attacher
 	Cycler
+	EventAttacher
 }
 
 type Work struct {
@@ -39,4 +40,8 @@ func (w *Work) Start() (err error) {
 		err = w.Server.ListenAndServe()
 	}()
 	return
+}
+
+func (w *Work) On(eg EventRegister) {
+
 }

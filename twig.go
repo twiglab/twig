@@ -33,6 +33,11 @@ type Namer interface {
 	SetName(string)
 }
 
+// EventAttacher 事件关联器
+type EventAttacher interface {
+	On(EventRegister)
+}
+
 // Twig
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
@@ -83,10 +88,8 @@ func TODO() *Twig {
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	Attach(l, t)
-
-	log := l.(EventReceiver)
-	log.On(t.ebus)
+	l.Attach(t)
+	l.On(t.ebus)
 
 	return t
 }
@@ -99,12 +102,14 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
 	m.Attach(t)
+	m.On(t.ebus)
 	return t
 }
 
 func (t *Twig) WithWorker(w Worker) *Twig {
 	t.Worker = w
 	w.Attach(t)
+	w.On(t.ebus)
 	return t
 }
 

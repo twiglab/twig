@@ -43,4 +43,7 @@ type Logger interface {
 	Panic(i ...interface{})
 	Panicln(i ...interface{})
 	Panicf(format string, args ...interface{})
+
+	Attacher
+	EventAttacher
 }

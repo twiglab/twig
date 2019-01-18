@@ -4,10 +4,6 @@ import (
 	"container/list"
 )
 
-type EventReceiver interface {
-	On(EventRegister)
-}
-
 type EventHandlerFunc func(string, *Event)
 
 func (eh EventHandlerFunc) OnEvent(topic string, ev *Event) {

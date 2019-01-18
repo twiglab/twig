@@ -548,6 +548,10 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 	return rd
 }
 
+func (r *RadixTree) On(eg EventRegister) {
+
+}
+
 func reverse(path string, params ...interface{}) string {
 	uri := new(bytes.Buffer)
 	ln := len(params)
