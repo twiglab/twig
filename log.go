@@ -1,6 +1,7 @@
 package twig
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -31,6 +32,8 @@ func (el *StdEventLogger) OnEvent(topic string, ev *Event) {
 
 func (el *StdEventLogger) Attach(t *Twig) {
 	el.twig = t
+	prefix := fmt.Sprintf("twig@%s-%s-", t.Name(), t.ID())
+	el.SetPrefix(prefix)
 }
 
 type Logger interface {

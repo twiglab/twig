@@ -70,18 +70,17 @@ func TODO() *Twig {
 		ebus:    newbox(),
 	}
 
+	idGen := &snowflakeIdGen{
+		sonwflake: NewSnowflake(nodeid),
+	}
+	t.id = idGen.NextID()
+	t.UsePlugin(idGen)
+
 	t.
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newStdEventLog()).
 		WithMuxer(NewRadixTree()).
 		WithWorker(NewWork())
-
-	idGen := &snowflakeIdGen{
-		sonwflake: NewSnowflake(nodeid),
-	}
-	t.id = idGen.NextID()
-
-	t.UsePlugin(idGen)
 
 	return t
 }
