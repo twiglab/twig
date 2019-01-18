@@ -29,10 +29,10 @@ type EventEmitter interface {
 }
 
 type EventRegister interface {
-	On(string, EventHandler) EventRegister
+	On(string, EventHandler)
 }
 
-type Messager interface {
+type Notifier interface {
 	EventEmitter
 	EventRegister
 }
@@ -59,7 +59,7 @@ func (b *ebox) Emit(event string, msg *Event) {
 	}()
 }
 
-func (b *ebox) On(topic string, eh EventHandler) EventRegister {
+func (b *ebox) On(topic string, eh EventHandler) {
 	hs, ok := b.eventList[topic]
 
 	if !ok {
@@ -68,6 +68,4 @@ func (b *ebox) On(topic string, eh EventHandler) EventRegister {
 
 	hs.PushBack(eh)
 	b.eventList[topic] = hs
-
-	return b
 }

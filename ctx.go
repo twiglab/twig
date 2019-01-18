@@ -103,7 +103,7 @@ func NewPureCtx(t *Twig) *PureCtx {
 	return &PureCtx{
 		resp:    NewResponseWrap(nil),
 		twig:    t,
-		emitter: t.Messager,
+		emitter: t.ebus,
 	}
 }
 

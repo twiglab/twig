@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"strconv"
 	"sync"
 )
 
@@ -39,10 +38,11 @@ type Namer interface {
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
-	Logger   Logger   // Logger 组件负责日志输出
-	Muxer    Muxer    // Muxer 组件负责路由处理
-	Worker   Worker   // Worker 负责Http请求处理
-	Messager Messager // Messager 负责内部消息处理
+	Logger Logger // Logger 组件负责日志输出
+	Muxer  Muxer  // Muxer 组件负责路由处理
+	Worker Worker // Worker 负责Http请求处理
+
+	ebus Notifier
 
 	Debug bool
 
@@ -63,8 +63,7 @@ func TODO() *Twig {
 		Debug:   false,
 		name:    "main",
 		plugins: make(map[string]Plugin),
-
-		Messager: newbox(),
+		ebus:    newbox(),
 	}
 
 	t.
@@ -73,10 +72,10 @@ func TODO() *Twig {
 		WithLogger(newEventLog(os.Stdout, "twig-log-")).
 		WithMuxer(NewRadixTree())
 
-	idGen := &IdGen{
-		IdGenerator: NewSonwflake(),
+	idGen := &snowflakeIdGen{
+		sonwflake: NewSnowflake(nodeid),
 	}
-	t.id = strconv.FormatUint(idGen.NextID(), 32)
+	t.id = idGen.NextID()
 
 	t.UsePlugin(idGen)
 
@@ -87,8 +86,8 @@ func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
 	Attach(l, t)
 
-	log := l.(*EventLogger)
-	log.On(t.Messager)
+	log := l.(EventReceiver)
+	log.On(t.ebus)
 
 	return t
 }
@@ -108,15 +107,6 @@ func (t *Twig) WithWorker(w Worker) *Twig {
 	t.Worker = w
 	w.Attach(t)
 	return t
-}
-
-func (t *Twig) WithMessager(m Messager) *Twig {
-	t.Messager = m
-	t.On(t.Messager)
-	return t
-}
-
-func (t *Twig) On(reg EventRegister) {
 }
 
 func (t *Twig) EnableDebug() *Twig {
@@ -215,10 +205,6 @@ func (t *Twig) ID() (id string) {
 
 func (t *Twig) Type() string {
 	return "twig"
-}
-
-func (t *Twig) OnEvent(topic string, ev *Event) {
-	//~~~ comming soon ~~~
 }
 
 func (t *Twig) Config() *Cfg {

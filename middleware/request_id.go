@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"strconv"
-
 	"github.com/twiglab/twig"
 )
 
@@ -18,7 +16,7 @@ var DefaultRequestIDConfig = RequestIDConfig{
 
 func generator(c twig.Ctx) string {
 	gen := twig.GetIdGenerator(c)
-	return strconv.FormatUint(gen.NextID(), 32)
+	return gen.NextID()
 }
 
 func RequestIDWithConfig(config RequestIDConfig) twig.MiddlewareFunc {
