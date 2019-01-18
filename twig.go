@@ -63,14 +63,15 @@ func TODO() *Twig {
 		Debug:   false,
 		name:    "main",
 		plugins: make(map[string]Plugin),
+
+		Messager: newbox(),
 	}
 
 	t.
 		WithWorker(NewWork()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newLog(os.Stdout, "twig-log-")).
-		WithMuxer(NewRadixTree()).
-		WithMessager(newbox())
+		WithLogger(newEventLog(os.Stdout, "twig-log-")).
+		WithMuxer(NewRadixTree())
 
 	idGen := &IdGen{
 		IdGenerator: NewSonwflake(),
@@ -85,6 +86,10 @@ func TODO() *Twig {
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
 	Attach(l, t)
+
+	log := l.(*EventLogger)
+	log.On(t.Messager)
+
 	return t
 }
 

@@ -15,7 +15,7 @@ func (eh EventHandlerFunc) OnEvent(topic string, ev *Event) {
 }
 
 type EventHandler interface {
-	Handler(string, *Event)
+	OnEvent(string, *Event)
 }
 
 type Event struct {
@@ -53,7 +53,7 @@ func (b *ebox) Emit(event string, msg *Event) {
 		if topic, ok := b.eventList[event]; ok {
 			for el := topic.Front(); el != nil; el = el.Next() {
 				r := el.Value.(EventHandler)
-				r.Handler(event, msg)
+				r.OnEvent(event, msg)
 			}
 		}
 	}()
