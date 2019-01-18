@@ -132,6 +132,9 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 func (t *Twig) UsePlugin(plugins ...Plugin) *Twig {
 	for _, plugin := range plugins {
 		Attach(plugin, t)
+		if ea, ok := plugin.(EventAttacher); ok {
+			ea.On(t.ebus)
+		}
 		t.plugins[plugin.ID()] = plugin
 	}
 
