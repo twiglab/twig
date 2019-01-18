@@ -158,7 +158,7 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 }
 
 type radixTreeCtx struct {
-	*VCtx
+	*PureCtx
 
 	handler HandlerFunc
 	path    string
@@ -171,7 +171,7 @@ type radixTreeCtx struct {
 
 func newRadixTreeCtx(t *Twig, tree *RadixTree) *radixTreeCtx {
 	c := &radixTreeCtx{
-		VCtx:    NewVCtx(t),
+		PureCtx: NewPureCtx(t),
 		pvalues: make([]string, tree.maxParam),
 		tree:    tree,
 		handler: NotFoundHandler,
