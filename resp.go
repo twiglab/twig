@@ -13,7 +13,7 @@ type RespCallBack func(http.ResponseWriter)
 // 提供以下增强：
 // 1, Hijack功能
 // 2, 通过Committed防止输出先于header
-type ResponseWarp struct {
+type ResponseWrap struct {
 	before    []RespCallBack
 	after     []RespCallBack
 	Writer    http.ResponseWriter
@@ -22,32 +22,28 @@ type ResponseWarp struct {
 	Committed bool
 }
 
-func NewResponseWarp(w http.ResponseWriter) *ResponseWarp {
-	return &ResponseWarp{Writer: w}
+func NewResponseWrap(w http.ResponseWriter) *ResponseWrap {
+	return &ResponseWrap{Writer: w}
 }
 
-func (r *ResponseWarp) Header() http.Header {
+func (r *ResponseWrap) Header() http.Header {
 	return r.Writer.Header()
 }
 
-func (r *ResponseWarp) Flush() {
+func (r *ResponseWrap) Flush() {
 	r.Writer.(http.Flusher).Flush()
 }
 
-func (r *ResponseWarp) CloseNotify() <-chan bool {
-	return r.Writer.(http.CloseNotifier).CloseNotify()
-}
-
-func (r *ResponseWarp) Before(fn RespCallBack) {
+func (r *ResponseWrap) Before(fn RespCallBack) {
 	r.before = append(r.before, fn)
 }
 
-func (r *ResponseWarp) After(fn RespCallBack) {
+func (r *ResponseWrap) After(fn RespCallBack) {
 	r.after = append(r.after, fn)
 }
 
 // 设置header时查是否已经输出内容
-func (r *ResponseWarp) WriteHeader(code int) {
+func (r *ResponseWrap) WriteHeader(code int) {
 	if r.Committed {
 		return
 	}
@@ -60,7 +56,7 @@ func (r *ResponseWarp) WriteHeader(code int) {
 }
 
 // 输出时候检查是否设置Header
-func (r *ResponseWarp) Write(b []byte) (n int, err error) {
+func (r *ResponseWrap) Write(b []byte) (n int, err error) {
 	if !r.Committed {
 		r.WriteHeader(http.StatusOK)
 	}
@@ -73,11 +69,11 @@ func (r *ResponseWarp) Write(b []byte) (n int, err error) {
 }
 
 // Hijack Hijack 支持
-func (r *ResponseWarp) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+func (r *ResponseWrap) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return r.Writer.(http.Hijacker).Hijack()
 }
 
-func (r *ResponseWarp) reset(w http.ResponseWriter) {
+func (r *ResponseWrap) reset(w http.ResponseWriter) {
 	r.before = nil
 	r.after = nil
 	r.Writer = w

@@ -72,6 +72,23 @@ func HandlerName(h HandlerFunc) string {
 	return t.String()
 }
 
+// Static 处理静态文件的HandlerFunc
+func Static(r string) HandlerFunc {
+	root := path.Clean(r)
+	return func(c Ctx) error {
+		p, err := url.PathUnescape(c.Param("*"))
+		if err != nil {
+			return err
+		}
+		name := filepath.Join(root, path.Clean("/"+p)) // 安全考虑 + "/"
+		return c.File(name)
+	}
+}
+
+// -------------------------------------------------
+// Hello World
+// -------------------------------------------------
+
 type info struct {
 	Title  string
 	Path   string
@@ -89,18 +106,9 @@ func HelloTwig(c Ctx) error {
 		Params: c.Params(),
 	}
 
-	return c.JSON(http.StatusOK, i)
-}
+	c.Emit("logger", &Event{
+		Body: "Hello Twig!",
+	})
 
-// Static 处理静态文件的HandlerFunc
-func Static(r string) HandlerFunc {
-	root := path.Clean(r)
-	return func(c Ctx) error {
-		p, err := url.PathUnescape(c.Param("*"))
-		if err != nil {
-			return err
-		}
-		name := filepath.Join(root, path.Clean("/"+p)) // 安全考虑 + "/"
-		return c.File(name)
-	}
+	return c.JSON(http.StatusOK, i)
 }

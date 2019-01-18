@@ -18,20 +18,3 @@ func GetPlugin(id string, c Ctx) (p Plugin, ok bool) {
 func UsePlugin(t *Twig, plugin ...Plugin) {
 	t.UsePlugin(plugin...)
 }
-
-type DummyPlugin struct {
-	PlugName string
-	PluginID string
-}
-
-func (p *DummyPlugin) Name() string {
-	return p.PlugName
-}
-
-func (p *DummyPlugin) ID() string {
-	return p.PluginID
-}
-
-func (p *DummyPlugin) Type() string {
-	return "plugin"
-}

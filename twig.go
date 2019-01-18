@@ -3,12 +3,10 @@ package twig
 import (
 	"context"
 	"net/http"
-	"os"
-	"strconv"
 	"sync"
 )
 
-const Version = "0.4.dev"
+const Version = "0.5.dev"
 
 type M map[string]interface{}
 
@@ -35,14 +33,20 @@ type Namer interface {
 	SetName(string)
 }
 
+// EventAttacher 事件关联器
+type EventAttacher interface {
+	On(EventRegister)
+}
+
 // Twig
 type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
-	Logger   Logger   // Logger 组件负责日志输出
-	Muxer    Muxer    // Muxer 组件负责路由处理
-	Worker   Worker   // Worker 负责Http请求处理
-	Messager Messager // Messager 负责内部消息处理
+	Logger Logger // Logger 组件负责日志输出
+	Muxer  Muxer  // Muxer 组件负责路由处理
+	Worker Worker // Worker 负责Http请求处理
+
+	ebus Notifier
 
 	Debug bool
 
@@ -63,19 +67,19 @@ func TODO() *Twig {
 		Debug:   false,
 		name:    "main",
 		plugins: make(map[string]Plugin),
+		ebus:    newbox(),
 	}
 
 	t.
-		WithWorker(NewWork()).
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newLog(os.Stdout, "twig-log-")).
+		WithLogger(newStdEventLog()).
 		WithMuxer(NewRadixTree()).
-		WithMessager(newEventBus())
+		WithWorker(NewWork())
 
-	idGen := &IdGen{
-		IdGenerator: NewSonwflake(),
+	idGen := &snowflakeIdGen{
+		sonwflake: NewSnowflake(nodeid),
 	}
-	t.id = strconv.FormatUint(idGen.NextID(), 32)
+	t.id = idGen.NextID()
 
 	t.UsePlugin(idGen)
 
@@ -84,7 +88,9 @@ func TODO() *Twig {
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	Attach(l, t)
+	l.Attach(t)
+	l.On(t.ebus)
+
 	return t
 }
 
@@ -96,18 +102,14 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
 	m.Attach(t)
+	m.On(t.ebus)
 	return t
 }
 
 func (t *Twig) WithWorker(w Worker) *Twig {
 	t.Worker = w
 	w.Attach(t)
-	return t
-}
-
-func (t *Twig) WithMessager(m Messager) *Twig {
-	t.Messager = m
-	t.Messager.On(t.Type(), t)
+	w.On(t.ebus)
 	return t
 }
 
@@ -130,6 +132,9 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 func (t *Twig) UsePlugin(plugins ...Plugin) *Twig {
 	for _, plugin := range plugins {
 		Attach(plugin, t)
+		if ea, ok := plugin.(EventAttacher); ok {
+			ea.On(t.ebus)
+		}
 		t.plugins[plugin.ID()] = plugin
 	}
 
@@ -207,10 +212,6 @@ func (t *Twig) ID() (id string) {
 
 func (t *Twig) Type() string {
 	return "twig"
-}
-
-func (t *Twig) On(topic string, ev *Event) {
-	//~~~ comming soon ~~~
 }
 
 func (t *Twig) Config() *Cfg {
