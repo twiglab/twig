@@ -176,7 +176,11 @@ func (t *Twig) Start() error {
 	t.Logger.Printf("Twig@%s(id = %s ver = %s)\n", t.Name(), t.ID(), Version)
 
 	for _, p := range t.plugins {
-		Start(p)
+		if cycler, ok := p.(Cycler); ok {
+			if err := cycler.Start(); err != nil {
+				// log (TODO)
+			}
+		}
 	}
 
 	return t.Worker.Start()
@@ -185,7 +189,11 @@ func (t *Twig) Start() error {
 // Start Cycler#Shutdown
 func (t *Twig) Shutdown(ctx context.Context) error {
 	for _, p := range t.plugins {
-		Shutdown(p, ctx)
+		if cycler, ok := p.(Cycler); ok {
+			if err := cycler.Shutdown(ctx); err != nil {
+				// log (TODO)
+			}
+		}
 	}
 	return t.Worker.Shutdown(ctx)
 }
