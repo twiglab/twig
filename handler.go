@@ -106,9 +106,5 @@ func HelloTwig(c Ctx) error {
 		Params: c.Params(),
 	}
 
-	c.Emit("logger", &Event{
-		Body: "Hello Twig!",
-	})
-
 	return c.JSON(http.StatusOK, i)
 }
