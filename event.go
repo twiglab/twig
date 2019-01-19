@@ -65,3 +65,12 @@ func (b *ebox) On(topic string, eh EventHandler) {
 	hs.PushBack(eh)
 	b.eventList[topic] = hs
 }
+
+func EventSupports(i interface{}, n Notifier) {
+	if _, ok := i.(EventEmitter); ok {
+	}
+
+	if rg, ok := i.(EventAttacher); ok {
+		rg.On(n)
+	}
+}

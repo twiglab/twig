@@ -1,39 +1,35 @@
 package twig
 
 import (
-	"fmt"
 	"io"
 	"log"
-	"os"
 )
 
 func newLog(w io.Writer, name string) *log.Logger {
 	return log.New(w, name, log.LstdFlags|log.Lshortfile)
 }
 
-func newStdEventLog() *StdEventLogger {
-	return &StdEventLogger{
-		Logger: log.New(os.Stdout, "twig-", log.LstdFlags|log.Lshortfile),
+func newEventLog(w io.Writer, name string) *EventLogger {
+	return &EventLogger{
+		Logger: log.New(w, name, log.LstdFlags|log.Lshortfile),
 	}
 }
 
-type StdEventLogger struct {
-	*log.Logger
+type EventLogger struct {
+	Logger
 	twig *Twig
 }
 
-func (el *StdEventLogger) On(eg EventRegister) {
+func (el *EventLogger) On(eg EventRegister) {
 	eg.On("logger", el)
 }
 
-func (el *StdEventLogger) OnEvent(topic string, ev *Event) {
+func (el *EventLogger) OnEvent(topic string, ev *Event) {
 	el.Println(ev.Body)
 }
 
-func (el *StdEventLogger) Attach(t *Twig) {
+func (el *EventLogger) Attach(t *Twig) {
 	el.twig = t
-	prefix := fmt.Sprintf("twig@%s-%s-", t.Name(), t.ID())
-	el.SetPrefix(prefix)
 }
 
 type Logger interface {
@@ -46,7 +42,4 @@ type Logger interface {
 	Panic(i ...interface{})
 	Panicln(i ...interface{})
 	Panicf(format string, args ...interface{})
-
-	Attacher
-	EventAttacher
 }

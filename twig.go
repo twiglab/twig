@@ -3,10 +3,11 @@ package twig
 import (
 	"context"
 	"net/http"
+	"os"
 	"sync"
 )
 
-const Version = "0.5.dev"
+const Version = "0.6.dev"
 
 type M map[string]interface{}
 
@@ -70,15 +71,13 @@ func TODO() *Twig {
 		ebus:    newbox(),
 	}
 
-	idGen := &snowflakeIdGen{
-		sonwflake: NewSnowflake(nodeid),
-	}
+	idGen := newUuidPlugin()
 	t.id = idGen.NextID()
 	t.UsePlugin(idGen)
 
 	t.
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newStdEventLog()).
+		WithLogger(newEventLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree()).
 		WithWorker(NewWork())
 
@@ -87,8 +86,8 @@ func TODO() *Twig {
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	l.Attach(t)
-	l.On(t.ebus)
+	Attach(l, t)
+	//	l.On(t.ebus)
 
 	return t
 }
@@ -144,12 +143,6 @@ func (t *Twig) UsePlugin(plugins ...Plugin) *Twig {
 func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
 	p, ok = t.plugins[id]
 	return
-}
-
-type muxerCtx interface {
-	Release()
-	reset(http.ResponseWriter, *http.Request)
-	Handler() HandlerFunc
 }
 
 // ServeHTTP 实现`http.Handler`接口

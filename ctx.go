@@ -27,6 +27,7 @@ type Ctx interface {
 
 	IsTls() bool
 	IsWebSocket() bool
+	IsAjax() bool
 
 	Scheme() string
 
@@ -144,6 +145,10 @@ func (c *PureCtx) IsTls() bool {
 func (c *PureCtx) IsWebSocket() bool {
 	upgrade := c.req.Header.Get(HeaderUpgrade)
 	return upgrade == "websocket" || upgrade == "Websocket"
+}
+
+func (c *PureCtx) IsAjax() bool {
+	return IsAJAX(c.Req())
 }
 
 func (c *PureCtx) Scheme() string {
@@ -410,4 +415,10 @@ func (c *PureCtx) Error(e error) {
 
 func (c *PureCtx) Emit(topic string, msg *Event) {
 	c.emitter.Emit(topic, msg)
+}
+
+type muxerCtx interface {
+	Release()
+	reset(http.ResponseWriter, *http.Request)
+	Handler() HandlerFunc
 }
