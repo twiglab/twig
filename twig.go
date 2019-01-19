@@ -77,7 +77,7 @@ func TODO() *Twig {
 
 	t.
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newEventLog(os.Stdout, "twig-")).
+		WithLogger(newLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree()).
 		WithWorker(NewWork())
 
@@ -87,8 +87,6 @@ func TODO() *Twig {
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
 	Attach(l, t)
-	//	l.On(t.ebus)
-
 	return t
 }
 
@@ -100,14 +98,12 @@ func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
 func (t *Twig) WithMuxer(m Muxer) *Twig {
 	t.Muxer = m
 	m.Attach(t)
-	m.On(t.ebus)
 	return t
 }
 
 func (t *Twig) WithWorker(w Worker) *Twig {
 	t.Worker = w
 	w.Attach(t)
-	w.On(t.ebus)
 	return t
 }
 

@@ -27,7 +27,7 @@ type Ctx interface {
 
 	IsTls() bool
 	IsWebSocket() bool
-	IsAjax() bool
+	IsXMLHttpRequest() bool
 
 	Scheme() string
 
@@ -147,8 +147,11 @@ func (c *PureCtx) IsWebSocket() bool {
 	return upgrade == "websocket" || upgrade == "Websocket"
 }
 
-func (c *PureCtx) IsAjax() bool {
-	return IsAJAX(c.Req())
+func (c *PureCtx) IsXMLHttpRequest() bool {
+	return strings.Contains(
+		c.req.Header.Get(HeaderXRequestedWith),
+		XMLHttpRequest,
+	)
 }
 
 func (c *PureCtx) Scheme() string {

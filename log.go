@@ -9,29 +9,6 @@ func newLog(w io.Writer, name string) *log.Logger {
 	return log.New(w, name, log.LstdFlags|log.Lshortfile)
 }
 
-func newEventLog(w io.Writer, name string) *EventLogger {
-	return &EventLogger{
-		Logger: log.New(w, name, log.LstdFlags|log.Lshortfile),
-	}
-}
-
-type EventLogger struct {
-	Logger
-	twig *Twig
-}
-
-func (el *EventLogger) On(eg EventRegister) {
-	eg.On("logger", el)
-}
-
-func (el *EventLogger) OnEvent(topic string, ev *Event) {
-	el.Println(ev.Body)
-}
-
-func (el *EventLogger) Attach(t *Twig) {
-	el.twig = t
-}
-
 type Logger interface {
 	Print(i ...interface{})
 	Println(i ...interface{})
