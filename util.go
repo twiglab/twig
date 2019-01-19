@@ -2,7 +2,6 @@ package twig
 
 import (
 	"net/http"
-	"strings"
 )
 
 // Mouter 接口用于模块化设置路由
@@ -19,11 +18,6 @@ func GetReqPath(r *http.Request) string {
 	}
 
 	return path
-}
-
-// 判断当前请求是否为AJAX
-func IsAJAX(r *http.Request) bool {
-	return strings.Contains(r.Header.Get(HeaderXRequestedWith), XMLHttpRequest)
 }
 
 // Attach 设置关联关系
