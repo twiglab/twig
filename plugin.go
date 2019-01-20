@@ -1,5 +1,7 @@
 package twig
 
+import "io"
+
 // Plugin 定义了Twig的外部插件
 // 如果插件需要生命周期管理，请实现Cycler接口
 // 如果插件需要访问Twig本身，请实现Attacher接口
@@ -18,3 +20,46 @@ func GetPlugin(id string, c Ctx) (p Plugin, ok bool) {
 func UsePlugin(t *Twig, plugin ...Plugin) {
 	t.UsePlugin(plugin...)
 }
+
+// Binder 数据绑定接口
+// Binder 作为一个插件集成到Twig中,请实现Plugin接口
+// Twig 没有默认的Binder的实现
+type Binder interface {
+	Bind(interface{}, Ctx) error
+}
+
+// GetBinder 获取绑定接口
+func GetBinder(id string, c Ctx) (binder Binder, ok bool) {
+	var plugin Plugin
+	if plugin, ok = GetPlugin(id, c); ok {
+		binder, ok = plugin.(Binder)
+	}
+	return
+}
+
+type Renderer interface {
+	Render(io.Writer, string, interface{}, Ctx) error
+}
+
+func GetRenderer(id string, c Ctx) (r Renderer, ok bool) {
+	var plugin Plugin
+	if plugin, ok = GetPlugin(id, c); ok {
+		r, ok = plugin.(Renderer)
+	}
+	return
+}
+
+/*
+// Validator 验证接口
+type Validator interface {
+	Validate(interface{}, Ctx) error
+}
+
+func GetValidator(id string, c Ctx) (v Validator, ok bool) {
+	var plugin Plugin
+	if plugin, ok = GetPlugin(id, c); ok {
+		v, ok = plugin.(Validator)
+	}
+	return
+}
+*/
