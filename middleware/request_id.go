@@ -15,7 +15,7 @@ var DefaultRequestIDConfig = RequestIDConfig{
 }
 
 func generator(c twig.Ctx) string {
-	gen := twig.GetIdGenerator(c)
+	gen := twig.GetUUIDGen(c)
 	return gen.NextID()
 }
 

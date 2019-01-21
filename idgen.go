@@ -1,39 +1,29 @@
 package twig
 
-import (
-	"github.com/twiglab/twig/internal/uuid"
-)
-
-type IdGenerator interface {
-	NextID() string
-}
+import "github.com/twiglab/twig/internal/uuid"
 
 const uuidPluginID = "_twig_uuid_plugin_id_"
 
-type uuidPlugin struct {
+type uuidGen struct {
 }
 
-func (id uuidPlugin) ID() string {
+func (id uuidGen) ID() string {
 	return uuidPluginID
 }
 
-func (id uuidPlugin) Name() string {
+func (id uuidGen) Name() string {
 	return uuidPluginID
 }
 
-func (id uuidPlugin) Type() string {
+func (id uuidGen) Type() string {
 	return "plugin"
 }
 
-func (id uuidPlugin) NextID() string {
+func (id uuidGen) NextID() string {
 	return uuid.NewV1().String()
 }
 
-func newUuidPlugin() uuidPlugin {
-	return uuidPlugin{}
-}
-
-func GetIdGenerator(c Ctx) IdGenerator {
-	p, _ := GetPlugin(uuidPluginID, c)
-	return p.(IdGenerator)
+func GetUUIDGen(c Ctx) (gen IdGenerator) {
+	gen, _ = GetIdGenerator(uuidPluginID, c)
+	return
 }

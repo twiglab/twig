@@ -66,7 +66,7 @@ func TODO() *Twig {
 		//ebus:    newbox(),
 	}
 
-	idGen := newUuidPlugin()
+	idGen := uuidGen{}
 	t.id = idGen.NextID()
 	t.UsePlugin(idGen)
 

@@ -49,17 +49,14 @@ func GetRenderer(id string, c Ctx) (r Renderer, ok bool) {
 	return
 }
 
-/*
-// Validator 验证接口
-type Validator interface {
-	Validate(interface{}, Ctx) error
+type IdGenerator interface {
+	NextID() string
 }
 
-func GetValidator(id string, c Ctx) (v Validator, ok bool) {
+func GetIdGenerator(id string, c Ctx) (gen IdGenerator, ok bool) {
 	var plugin Plugin
 	if plugin, ok = GetPlugin(id, c); ok {
-		v, ok = plugin.(Validator)
+		gen, ok = plugin.(IdGenerator)
 	}
 	return
 }
-*/
