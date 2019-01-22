@@ -28,7 +28,7 @@ func Quit() SignalFunc {
 // GracefulShutdown
 func Graceful(t *Twig, timeout time.Duration) SignalFunc {
 	return func(_ os.Signal) bool {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
 		if err := t.Shutdown(ctx); err != nil {
