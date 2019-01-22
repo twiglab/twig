@@ -2,6 +2,7 @@ package twig
 
 import (
 	"bufio"
+	"io"
 	"net"
 	"net/http"
 )
@@ -66,6 +67,17 @@ func (r *ResponseWrap) Write(b []byte) (n int, err error) {
 		fn(r)
 	}
 	return
+}
+
+func (r *ResponseWrap) ReaderFrom(src io.Reader) (n int64, e error) {
+	if !r.Committed {
+		r.WriteHeader(http.StatusOK)
+	}
+
+	n, e = io.Copy(r.Writer, src)
+	r.Len += n
+	return
+
 }
 
 // Hijack Hijack 支持
