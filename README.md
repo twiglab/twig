@@ -15,6 +15,7 @@ package main
 import (
 	"github.com/twiglab/twig"
 	"github.com/twiglab/twig/middleware"
+	"time"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 
 	api.Start()
 
-	twig.Signal(twig.Graceful(api, 15))
+	twig.Signal(twig.Graceful(api, 15*time.Second))
 }
 ```
 
