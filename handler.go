@@ -85,6 +85,21 @@ func Static(r string) HandlerFunc {
 	}
 }
 
+func ServerInfo() MiddlewareFunc {
+	return func(next HandlerFunc) HandlerFunc {
+		return func(c Ctx) error {
+			if c.Twig().Debug {
+				w := c.Resp()
+				w.Header().Set(HeaderXTwigApplicationID, c.Twig().ID())
+				w.Header().Set(HeaderXTwigApplicationName, c.Twig().Name())
+				w.Header().Set(HeaderXTwigApplicationType, c.Twig().Type())
+				w.Header().Set(HeaderServer, TwigName)
+			}
+			return next(c)
+		}
+	}
+}
+
 // -------------------------------------------------
 // Hello World
 // -------------------------------------------------

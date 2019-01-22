@@ -100,5 +100,4 @@ func (c *Cfg) Mount(mount Mounter) *Cfg {
 func (c *Cfg) Done() {
 	c.R = nil
 	c.N = nil
-	c = nil
 }

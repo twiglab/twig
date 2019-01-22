@@ -131,3 +131,11 @@ var (
 const defaultMemory = 32 << 20 // 32 MB
 
 const XMLHttpRequest = "XMLHttpRequest"
+
+const (
+	HeaderXTwigApplicationID   = "X-Twig-Application-ID"
+	HeaderXTwigApplicationName = "X-Twig-Application-Name"
+	HeaderXTwigApplicationType = "X-Twig-Application-Type"
+)
+
+const TwigName = "Twig"

@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.6.dev"
+const Version = "0.7.1.dev"
 
 type M map[string]interface{}
 
@@ -55,13 +55,17 @@ type Twig struct {
 
 	name string
 	id   string
+	typ  string
 }
 
 // 创建空的Twig
 func TODO() *Twig {
 	t := &Twig{
-		Debug:   false,
-		name:    "main",
+		Debug: false,
+
+		name: "main",
+		typ:  TwigName,
+
 		plugins: make(map[string]Plugin),
 		//ebus:    newbox(),
 	}
@@ -159,7 +163,7 @@ func (t *Twig) Start() error {
 	for _, p := range t.plugins {
 		if cycler, ok := p.(Cycler); ok {
 			if err := cycler.Start(); err != nil {
-				// log (TODO)
+				t.Logger.Printf("Plugin (id = %s) start fatal, Err = %v\n", p.ID(), err)
 			}
 		}
 	}
@@ -172,7 +176,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	for _, p := range t.plugins {
 		if cycler, ok := p.(Cycler); ok {
 			if err := cycler.Shutdown(ctx); err != nil {
-				// log (TODO)
+				t.Logger.Printf("Plugin (id = %s) shoutdown fatal, Err = %v\n", p.ID(), err)
 			}
 		}
 	}
@@ -199,7 +203,11 @@ func (t *Twig) ID() (id string) {
 }
 
 func (t *Twig) Type() string {
-	return "twig"
+	return t.typ
+}
+
+func (t *Twig) SetType(typ string) {
+	t.typ = typ
 }
 
 func (t *Twig) Config() *Cfg {
