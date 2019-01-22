@@ -45,7 +45,7 @@ func Graceful(t *Twig, timeout time.Duration) SignalFunc {
 // 如果sig 为空，则监听所有信号
 // 特别注意：部分操作系统的信号不可以被忽略 (SIGKILL & SIGSTOP)
 func Signal(f SignalFunc, sig ...os.Signal) {
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
 	defer close(ch)
 
 	signal.Notify(ch, sig...)
