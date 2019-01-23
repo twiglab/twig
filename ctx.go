@@ -85,7 +85,7 @@ type Ctx interface {
 
 	Logger() Logger
 
-	//Emit(string, *Event)
+	Emit(string, *Event)
 }
 
 type PureCtx struct {
@@ -97,14 +97,14 @@ type PureCtx struct {
 
 	fact Ctx
 
-	//emitter EventEmitter
+	emitter EventEmitter
 }
 
 func NewPureCtx(t *Twig) *PureCtx {
 	return &PureCtx{
-		resp: NewResponseWrap(nil),
-		twig: t,
-		//emitter: t.ebus,
+		resp:    NewResponseWrap(nil),
+		twig:    t,
+		emitter: t.ebus,
 	}
 }
 
@@ -416,11 +416,9 @@ func (c *PureCtx) Error(e error) {
 	c.twig.HttpErrorHandler(e, c.fact)
 }
 
-/*
 func (c *PureCtx) Emit(topic string, msg *Event) {
 	c.emitter.Emit(topic, msg)
 }
-*/
 
 type muxerCtx interface {
 	Release()

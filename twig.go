@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.7.1.dev"
+const Version = "0.8"
 
 type M map[string]interface{}
 
@@ -42,7 +42,7 @@ type Twig struct {
 	Muxer  Muxer  // Muxer 组件负责路由处理
 	Worker Worker // Worker 负责Http请求处理
 
-	//ebus Notifier
+	ebus EventReactor
 
 	Debug bool
 
@@ -67,7 +67,7 @@ func TODO() *Twig {
 		typ:  TwigName,
 
 		plugins: make(map[string]Plugin),
-		//ebus:    newbox(),
+		ebus:    newbox(),
 	}
 
 	idGen := uuidGen{}
