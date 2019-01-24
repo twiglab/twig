@@ -187,13 +187,3 @@ func NewV1() UUID {
 
 	return u
 }
-
-// NewV4 returns random generated UUID.
-func NewV4() UUID {
-	u := UUID{}
-	safeRandom(u[:])
-	u.SetVersion(4)
-	u.SetVariant()
-
-	return u
-}
