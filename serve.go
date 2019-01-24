@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type Worker interface {
+type Server interface {
 	Handler(http.Handler)
 	Attacher
 	Cycler
