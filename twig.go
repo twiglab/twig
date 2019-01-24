@@ -7,9 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8"
-
-type M map[string]interface{}
+const Version = "0.8.1"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -102,6 +100,7 @@ func (t *Twig) WithMuxer(m Muxer) *Twig {
 
 func (t *Twig) WithWorker(w Worker) *Twig {
 	t.Worker = w
+	w.Handler(t)
 	w.Attach(t)
 	return t
 }
