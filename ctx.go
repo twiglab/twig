@@ -2,6 +2,7 @@ package twig
 
 import (
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -12,8 +13,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/twiglab/twig/internal/json"
 )
 
 type UrlParams map[string]string
