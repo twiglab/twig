@@ -7,9 +7,9 @@ import (
 )
 
 type Worker interface {
+	Handler(http.Handler)
 	Attacher
 	Cycler
-	Handler(http.Handler)
 }
 
 type Work struct {
@@ -32,7 +32,6 @@ func (w *Work) Handler(h http.Handler) {
 
 func (w *Work) Attach(twig *Twig) {
 	w.twig = twig
-	w.Handler(twig)
 }
 
 func (w *Work) Shutdown(ctx context.Context) error {
