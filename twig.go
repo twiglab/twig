@@ -7,9 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8"
-
-type M map[string]interface{}
+const Version = "0.8.1"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -40,7 +38,7 @@ type Twig struct {
 
 	Logger Logger // Logger 组件负责日志输出
 	Muxer  Muxer  // Muxer 组件负责路由处理
-	Worker Worker // Worker 负责Http请求处理
+	Server Server // Server 负责Http请求处理
 
 	ebus EventReactor
 
@@ -78,7 +76,7 @@ func TODO() *Twig {
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(newLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree()).
-		WithWorker(NewWork())
+		WithServer(NewWork())
 
 	return t
 }
@@ -100,8 +98,9 @@ func (t *Twig) WithMuxer(m Muxer) *Twig {
 	return t
 }
 
-func (t *Twig) WithWorker(w Worker) *Twig {
-	t.Worker = w
+func (t *Twig) WithServer(w Server) *Twig {
+	t.Server = w
+	w.Handler(t)
 	w.Attach(t)
 	return t
 }
@@ -168,7 +167,7 @@ func (t *Twig) Start() error {
 		}
 	}
 
-	return t.Worker.Start()
+	return t.Server.Start()
 }
 
 // Start Cycler#Shutdown
@@ -180,7 +179,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 			}
 		}
 	}
-	return t.Worker.Shutdown(ctx)
+	return t.Server.Shutdown(ctx)
 }
 
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {

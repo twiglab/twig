@@ -6,7 +6,8 @@ import (
 	"os"
 )
 
-type Worker interface {
+type Server interface {
+	Handler(http.Handler)
 	Attacher
 	Cycler
 }
@@ -25,9 +26,12 @@ func NewWork() *Work {
 	}
 }
 
+func (w *Work) Handler(h http.Handler) {
+	w.Server.Handler = h
+}
+
 func (w *Work) Attach(twig *Twig) {
 	w.twig = twig
-	w.Handler = twig
 }
 
 func (w *Work) Shutdown(ctx context.Context) error {

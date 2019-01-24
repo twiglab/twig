@@ -4,6 +4,9 @@ import (
 	"net/http"
 )
 
+// M 全局通用的map
+type M map[string]interface{}
+
 // Mouter 接口用于模块化设置路由
 type Mounter interface {
 	Mount(Register)
