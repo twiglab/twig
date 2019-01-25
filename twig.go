@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8.1"
+const Version = "0.8.2"
 
 // Identifier 标识符接口
 type Identifier interface {

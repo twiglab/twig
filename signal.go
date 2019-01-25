@@ -18,14 +18,15 @@ type Reloader interface {
 // 返回false 等待处理下一个信号
 type SignalFunc func(os.Signal) bool
 
-// 正常退出，不做任何处理
+// Quit 正常退出，不做任何处理
+// 注意，Quit后Signal后面的代码将被执行
 func Quit() SignalFunc {
 	return func(_ os.Signal) bool {
 		return true
 	}
 }
 
-// GracefulShutdown
+// Graceful Graceful Shutdown
 func Graceful(t *Twig, timeout time.Duration) SignalFunc {
 	return func(_ os.Signal) bool {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
