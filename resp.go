@@ -69,7 +69,7 @@ func (r *ResponseWrap) Write(b []byte) (n int, err error) {
 	return
 }
 
-func (r *ResponseWrap) ReaderFrom(src io.Reader) (n int64, e error) {
+func (r *ResponseWrap) ReadFrom(src io.Reader) (n int64, e error) {
 	if !r.Committed {
 		r.WriteHeader(http.StatusOK)
 	}

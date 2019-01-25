@@ -366,7 +366,7 @@ func (c *PureCtx) XMLBlob(code int, b []byte) (err error) {
 func (c *PureCtx) Stream(code int, contentType string, r io.Reader) (err error) {
 	c.writeContentType(contentType)
 	c.resp.WriteHeader(code)
-	_, err = c.resp.ReaderFrom(r)
+	_, err = c.resp.ReadFrom(r)
 	return
 }
 
