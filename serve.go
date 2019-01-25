@@ -3,7 +3,6 @@ package twig
 import (
 	"context"
 	"net/http"
-	"os"
 )
 
 type Server interface {
@@ -20,8 +19,7 @@ type Work struct {
 func NewWork() *Work {
 	return &Work{
 		Server: &http.Server{
-			Addr:     DefaultAddress,
-			ErrorLog: newLog(os.Stderr, "twig-work-"),
+			Addr: DefaultAddress,
 		},
 	}
 }
