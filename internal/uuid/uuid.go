@@ -1,7 +1,10 @@
 package uuid
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
+	"net"
 	"sync"
 	"time"
 )
@@ -30,12 +33,6 @@ import (
 // Package uuid provides implementation of Universally Unique Identifier (UUID).
 // Supported versions are 1, 3, 4 and 5 (as specified in RFC 4122) and
 // version 2 (as specified in DCE 1.1).
-
-import (
-	"crypto/rand"
-	"encoding/binary"
-	"net"
-)
 
 // Difference in 100-nanosecond intervals between
 // UUID epoch (October 15, 1582) and Unix epoch (January 1, 1970).
