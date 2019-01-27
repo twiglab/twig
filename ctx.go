@@ -29,6 +29,7 @@ type Ctx interface {
 	IsXMLHttpRequest() bool
 
 	Scheme() string
+	Proto() (string, int, int)
 
 	RealIP() string
 	Path() string
@@ -170,6 +171,10 @@ func (c *PureCtx) Scheme() string {
 		return scheme
 	}
 	return "http"
+}
+
+func (c *PureCtx) Proto() (string, int, int) {
+	return c.req.Proto, c.req.ProtoMajor, c.req.ProtoMinor
 }
 
 func (c *PureCtx) RealIP() string {
