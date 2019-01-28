@@ -56,7 +56,7 @@ Twig 的设计分为，核心，外围， 工具三个部分，核心是Twig的�
 
 ## 核心
 
-Twig 的核心组件包括：路由器（由Muxer接口定义`mux.go`），服务器（由于Worker接口定义`work.go`），日志（由Logger接口定义`log.go`），上下文和处理函数和中间件(`ctx.go和handler.go`中定义)，以及Twig本身（`twig.go`）
+Twig 的核心组件包括：路由器（由Muxer接口定义`mux.go`），服务器（由于Server接口定义`serve.go`），日志（由Logger接口定义`log.go`），上下文和处理函数和中间件(`ctx.go和handler.go`中定义)，以及Twig本身（`twig.go`）
 
 服务器（Worker）的作用是处理HTTP链接，路由器（Muxer）的作用是找到（Lookup）指定的处理器HandlerFunc，处理器则是执行具体业务的地方，它通过上下文（Ctx）和Server交互，Twig负责将上述几个组件组合起来，形成一个Webserver
 
