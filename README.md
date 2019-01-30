@@ -54,6 +54,9 @@ Twig 是一个仔细设计过的webserver， 与其他的webserver不同，Twig�
 
 Twig 的设计分为，核心，外围， 工具三个部分，核心是Twig的必须部分，外围不是必须的，但是外围可以更好的扩充Twig的功能，工具并不是Twig的一部分，Twig也不依赖任何工具，工具可以让Twig使用更加方便。
 
+---
+
+
 ## 核心
 
 Twig 的核心组件包括：路由器（由Muxer接口定义`mux.go`），服务器（由于Server接口定义`serve.go`），日志（由Logger接口定义`log.go`），上下文和处理函数和中间件(`ctx.go和handler.go`中定义)，以及Twig本身（`twig.go`）
