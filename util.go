@@ -104,3 +104,32 @@ func (c *Cfg) Done() {
 	c.R = nil
 	c.N = nil
 }
+
+// Group 提供理由分组支持
+type Group struct {
+	prefix string
+	m      []MiddlewareFunc
+	reg    Register
+}
+
+func NewGroup(r Register, prefix string) *Group {
+	return &Group{
+		prefix: prefix,
+		reg:    g,
+	}
+}
+
+func (g *Group) Use(mid ...MiddlewareFunc) {
+	g.m = append(g.m, mid...)
+}
+
+func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) Route {
+	name := HandlerName(h)
+	handler := Merge(h, g.m)
+
+	route := g.reg.AddHandler(method, g.prefix+path, handler, m...)
+
+	route.SetName(name)
+
+	return route
+}
