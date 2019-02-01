@@ -115,7 +115,7 @@ type Group struct {
 func NewGroup(r Register, prefix string) *Group {
 	return &Group{
 		prefix: prefix,
-		reg:    g,
+		reg:    r,
 	}
 }
 
