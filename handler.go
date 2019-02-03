@@ -89,7 +89,7 @@ func ServerInfo() MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
 		return func(c Ctx) error {
 			w := c.Resp()
-			w.Header().Set(HeaderServer, TwigName)
+			w.Header().Set(HeaderServer, c.Twig().Name())
 			if c.Twig().Debug {
 				w.Header().Set(HeaderXTwigApplicationID, c.Twig().ID())
 				w.Header().Set(HeaderXTwigApplicationName, c.Twig().Name())
