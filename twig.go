@@ -74,7 +74,7 @@ func TODO() *Twig {
 
 	t.
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
-		WithLogger(newLog(os.Stdout, "twig-")).
+		WithLogger(NewLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree()).
 		WithServer(NewWork())
 
