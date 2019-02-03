@@ -38,7 +38,9 @@ func (w *Work) Shutdown(ctx context.Context) error {
 
 func (w *Work) Start() (err error) {
 	go func() {
-		err = w.Server.ListenAndServe()
+		if err = w.Server.ListenAndServe(); err != nil {
+			w.twig.Logger.Panic(err)
+		}
 	}()
 	return
 }
