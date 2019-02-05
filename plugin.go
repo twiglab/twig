@@ -1,6 +1,10 @@
 package twig
 
-import "io"
+import (
+	"io"
+
+	"github.com/twiglab/twig/internal/uuid"
+)
 
 // Plugin 定义了Twig的外部插件
 // 如果插件需要生命周期管理，请实现Cycler接口
@@ -23,7 +27,6 @@ func UsePlugin(t *Twig, plugin ...Plugin) {
 
 // Binder 数据绑定接口
 // Binder 作为一个插件集成到Twig中,请实现Plugin接口
-// Twig 没有默认的Binder的实现
 type Binder interface {
 	Bind(interface{}, Ctx) error
 }
@@ -58,5 +61,31 @@ func GetIdGenerator(id string, c Ctx) (gen IdGenerator, ok bool) {
 	if plugin, ok = GetPlugin(id, c); ok {
 		gen, ok = plugin.(IdGenerator)
 	}
+	return
+}
+
+const uuidPluginID = "_twig_uuid_plugin_id_"
+
+type uuidGen struct {
+}
+
+func (id uuidGen) ID() string {
+	return uuidPluginID
+}
+
+func (id uuidGen) Name() string {
+	return uuidPluginID
+}
+
+func (id uuidGen) Type() string {
+	return "idGen"
+}
+
+func (id uuidGen) NextID() string {
+	return uuid.NewV1().String()
+}
+
+func GetUUIDGen(c Ctx) (gen IdGenerator) {
+	gen, _ = GetIdGenerator(uuidPluginID, c)
 	return
 }

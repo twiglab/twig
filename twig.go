@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8.2"
+const Version = "0.8.3-dev"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -70,7 +70,7 @@ func TODO() *Twig {
 
 	idGen := uuidGen{}
 	t.id = idGen.NextID()
-	t.UsePlugin(idGen)
+	t.UsePlugin(idGen, NewDefaultBinder())
 
 	t.
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
