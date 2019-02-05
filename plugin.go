@@ -10,7 +10,7 @@ import (
 // 如果插件需要生命周期管理，请实现Cycler接口
 // 如果插件需要访问Twig本身，请实现Attacher接口
 type Plugin interface {
-	Identifier
+	ID() string
 }
 
 // GetPlugin 从当前Ctx中获取Plugin
@@ -52,6 +52,7 @@ func GetRenderer(id string, c Ctx) (r Renderer, ok bool) {
 	return
 }
 
+// IdGenerator ID发生器接口
 type IdGenerator interface {
 	NextID() string
 }
@@ -73,19 +74,11 @@ func (id uuidGen) ID() string {
 	return uuidPluginID
 }
 
-func (id uuidGen) Name() string {
-	return uuidPluginID
-}
-
-func (id uuidGen) Type() string {
-	return "idGen"
-}
-
 func (id uuidGen) NextID() string {
-	return uuid.NewV1().String()
+	return uuid.NewV1().String32()
 }
 
-func GetUUIDGen(c Ctx) (gen IdGenerator) {
-	gen, _ = GetIdGenerator(uuidPluginID, c)
-	return
+func GenID(c Ctx) string {
+	idgen, _ := GetIdGenerator(uuidPluginID, c)
+	return idgen.NextID()
 }

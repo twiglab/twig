@@ -51,12 +51,6 @@ var (
 	hardwareAddr  [6]byte
 )
 
-// String parse helpers.
-var (
-	urnPrefix  = []byte("urn:uuid:")
-	byteGroups = []int{8, 4, 4, 4, 12}
-)
-
 func initClockSequence() {
 	buf := make([]byte, 2)
 	safeRandom(buf)

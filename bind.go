@@ -30,25 +30,13 @@ type BindUnmarshaler interface {
 	UnmarshalParam(param string) error
 }
 
-type DefaultBinder struct{}
+type defaultBinder struct{}
 
-func NewDefaultBinder() *DefaultBinder {
-	return &DefaultBinder{}
-}
-
-func (b *DefaultBinder) ID() string {
+func (b *defaultBinder) ID() string {
 	return defBinderID
 }
 
-func (b *DefaultBinder) Name() string {
-	return defBinderID
-}
-
-func (b *DefaultBinder) Type() string {
-	return "binder"
-}
-
-func (b *DefaultBinder) Bind(i interface{}, c Ctx) (err error) {
+func (b *defaultBinder) Bind(i interface{}, c Ctx) (err error) {
 	req := c.Req()
 	if req.ContentLength == 0 {
 		if req.Method == http.MethodGet || req.Method == http.MethodDelete {
@@ -97,7 +85,7 @@ func (b *DefaultBinder) Bind(i interface{}, c Ctx) (err error) {
 	return
 }
 
-func (b *DefaultBinder) bindData(ptr interface{}, data map[string][]string, tag string) error {
+func (b *defaultBinder) bindData(ptr interface{}, data map[string][]string, tag string) error {
 	typ := reflect.TypeOf(ptr).Elem()
 	val := reflect.ValueOf(ptr).Elem()
 
@@ -297,9 +285,6 @@ func setFloatField(value string, bitSize int, field reflect.Value) error {
 }
 
 func Bind(i interface{}, c Ctx) error {
-	binder, ok := GetBinder(defBinderID, c)
-	if !ok {
-		return fmt.Errorf("not found binder id(%s)", defBinderID)
-	}
+	binder, _ := GetBinder(defBinderID, c)
 	return binder.Bind(i, c)
 }

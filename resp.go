@@ -10,10 +10,7 @@ import (
 // RespCallBack ResponseWriter回调函数
 type RespCallBack func(http.ResponseWriter)
 
-// 包装http.ResponseWrite
-// 提供以下增强：
-// 1, Hijack功能
-// 2, 通过Committed防止输出先于header
+// ResponseWrap 包装http.ResponseWrite
 type ResponseWrap struct {
 	before    []RespCallBack
 	after     []RespCallBack
@@ -23,7 +20,7 @@ type ResponseWrap struct {
 	Committed bool
 }
 
-func NewResponseWrap(w http.ResponseWriter) *ResponseWrap {
+func newResponseWrap(w http.ResponseWriter) *ResponseWrap {
 	return &ResponseWrap{Writer: w}
 }
 

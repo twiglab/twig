@@ -102,7 +102,7 @@ type PureCtx struct {
 
 func NewPureCtx(t *Twig) *PureCtx {
 	return &PureCtx{
-		resp:    NewResponseWrap(nil),
+		resp:    newResponseWrap(nil),
 		twig:    t,
 		emitter: t.ebus,
 	}

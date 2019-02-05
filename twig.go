@@ -70,7 +70,7 @@ func TODO() *Twig {
 
 	idGen := uuidGen{}
 	t.id = idGen.NextID()
-	t.UsePlugin(idGen, NewDefaultBinder())
+	t.UsePlugin(idGen, &defaultBinder{})
 
 	t.
 		WithHttpErrorHandler(DefaultHttpErrorHandler).
