@@ -5,17 +5,20 @@ import (
 )
 
 // Register 接口
+// 实现路由注册
 type Register interface {
 	AddHandler(string, string, HandlerFunc, ...MiddlewareFunc) Route
 	Use(...MiddlewareFunc)
 }
 
 // Lookuper 接口
+// 实现路由查找
 type Lookuper interface {
 	Lookup(string, string, *http.Request) Ctx
 }
 
 // Muxer 接口
+// 路由接口
 type Muxer interface {
 	Lookuper
 	Register

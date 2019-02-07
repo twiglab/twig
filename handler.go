@@ -91,35 +91,9 @@ func ServerInfo() MiddlewareFunc {
 			w := c.Resp()
 			w.Header().Set(HeaderServer, c.Twig().Name())
 			if c.Twig().Debug {
-				w.Header().Set(HeaderXTwigApplicationID, c.Twig().ID())
-				w.Header().Set(HeaderXTwigApplicationName, c.Twig().Name())
-				w.Header().Set(HeaderXTwigApplicationType, c.Twig().Type())
+				w.Header().Set(HeaderXPoweredBy, c.Twig().Type())
 			}
 			return next(c)
 		}
 	}
-}
-
-// -------------------------------------------------
-// Hello World
-// -------------------------------------------------
-
-type info struct {
-	Title  string
-	Path   string
-	Url    string
-	Params UrlParams
-}
-
-// HelloTwig! ~~
-func HelloTwig(c Ctx) error {
-
-	i := &info{
-		Title:  "Hello Twig!",
-		Path:   c.Path(),
-		Url:    GetReqPath(c.Req()),
-		Params: c.Params(),
-	}
-
-	return c.JSON(http.StatusOK, i)
 }

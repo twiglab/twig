@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Server Http处理器接口
 type Server interface {
 	Handler(http.Handler)
 	Attacher

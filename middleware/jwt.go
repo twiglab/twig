@@ -174,7 +174,6 @@ func JWTWithConfig(config JWTConfig) twig.MiddlewareFunc {
 				return err
 			}
 			token := new(jwt.Token)
-			// Issue #647, #656
 			if _, ok := config.Claims.(jwt.MapClaims); ok {
 				token, err = jwt.Parse(auth, config.keyFunc)
 			} else {

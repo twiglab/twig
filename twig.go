@@ -62,7 +62,7 @@ func TODO() *Twig {
 		Debug: false,
 
 		name: "main",
-		typ:  TwigName,
+		typ:  "Twig",
 
 		plugins: make(map[string]Plugin),
 		ebus:    newbox(),
@@ -145,7 +145,7 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer mc.Release()
 
-	h := Merge(func(ctx Ctx) error { //注意这里是个闭包，闭包中处理Twig级中间件，结束后处理Pre中间件
+	h := Merge(func(ctx Ctx) error { //闭包，处理Twig级中间件，结束后处理Pre中间件
 		handler := Merge(mc.Handler(), t.mid) // 处理Twig级中间件
 		return handler(ctx)
 	}, t.pre) // 处理Pre中间件
@@ -182,6 +182,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Server.Shutdown(ctx)
 }
 
+// AddHandler Regester#AddHandler
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
 	return t.Muxer.AddHandler(method, path, handler, m...)
 }
@@ -196,19 +197,22 @@ func (t *Twig) Name() string {
 	return t.name
 }
 
-// Name Identifier#ID
+// ID Identifier#ID
 func (t *Twig) ID() (id string) {
 	return t.id
 }
 
+// Type Identifier#Type
 func (t *Twig) Type() string {
 	return t.typ
 }
 
+// SetType 设置当前应用程序类型
 func (t *Twig) SetType(typ string) {
 	t.typ = typ
 }
 
+// Config 创建并返回Config工具
 func (t *Twig) Config() *Cfg {
 	return Config(t).WithNamer(t)
 }
