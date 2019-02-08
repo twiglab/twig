@@ -12,8 +12,6 @@ type RespCallBack func(http.ResponseWriter)
 
 // ResponseWrap 包装http.ResponseWrite
 type ResponseWrap struct {
-	before    []RespCallBack
-	after     []RespCallBack
 	Writer    http.ResponseWriter
 	Status    int
 	Len       int64
@@ -69,8 +67,6 @@ func (r *ResponseWrap) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 }
 
 func (r *ResponseWrap) reset(w http.ResponseWriter) {
-	r.before = nil
-	r.after = nil
 	r.Writer = w
 	r.Len = 0
 	r.Status = http.StatusOK
