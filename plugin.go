@@ -6,23 +6,18 @@ import (
 	"github.com/twiglab/twig/internal/uuid"
 )
 
-// Plugin 定义了Twig的外部插件
+// Plugger 定义了Twig的外部插件
 // 如果插件需要生命周期管理，请实现Cycler接口
 // 如果插件需要访问Twig本身，请实现Attacher接口
-type Plugin interface {
+type Plugger interface {
 	ID() string
 }
 
 // GetPlugin 从当前Ctx中获取Plugin
-func GetPlugin(id string, c Ctx) (p Plugin, ok bool) {
+func GetPlugger(id string, c Ctx) (p Plugger, ok bool) {
 	t := c.Twig()
-	p, ok = t.Plugin(id)
+	p, ok = t.GetPlugger(id)
 	return
-}
-
-// UsePlugin 将plugin加入到Twig中
-func UsePlugin(t *Twig, plugin ...Plugin) {
-	t.UsePlugin(plugin...)
 }
 
 // Binder 数据绑定接口
@@ -33,9 +28,9 @@ type Binder interface {
 
 // GetBinder 获取绑定接口
 func GetBinder(id string, c Ctx) (binder Binder, ok bool) {
-	var plugin Plugin
-	if plugin, ok = GetPlugin(id, c); ok {
-		binder, ok = plugin.(Binder)
+	var plugger Plugger
+	if plugger, ok = GetPlugger(id, c); ok {
+		binder, ok = plugger.(Binder)
 	}
 	return
 }
@@ -45,9 +40,9 @@ type Renderer interface {
 }
 
 func GetRenderer(id string, c Ctx) (r Renderer, ok bool) {
-	var plugin Plugin
-	if plugin, ok = GetPlugin(id, c); ok {
-		r, ok = plugin.(Renderer)
+	var plugger Plugger
+	if plugger, ok = GetPlugger(id, c); ok {
+		r, ok = plugger.(Renderer)
 	}
 	return
 }
@@ -58,9 +53,9 @@ type IdGenerator interface {
 }
 
 func GetIdGenerator(id string, c Ctx) (gen IdGenerator, ok bool) {
-	var plugin Plugin
-	if plugin, ok = GetPlugin(id, c); ok {
-		gen, ok = plugin.(IdGenerator)
+	var plugger Plugger
+	if plugger, ok = GetPlugger(id, c); ok {
+		gen, ok = plugger.(IdGenerator)
 	}
 	return
 }

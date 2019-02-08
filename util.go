@@ -100,6 +100,10 @@ func (c *Cfg) Mount(mount Mounter) *Cfg {
 	return c
 }
 
+func (c *Cfg) Static(path, file string, m ...MiddlewareFunc) *Cfg {
+	return c.Get(path, Static(file), m...)
+}
+
 func (c *Cfg) Done() {
 	c.R = nil
 	c.N = nil

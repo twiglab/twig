@@ -40,12 +40,11 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	}
 }
 
-// 中间件包装器
+// Merge 中间件包装器
 func Merge(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {
 		return handler
 	}
-
 	h := handler
 	for i := len(m) - 1; i >= 0; i-- {
 		h = m[i](h)
@@ -53,13 +52,13 @@ func Merge(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	return h
 }
 
-// NotFoundHandler 全局404处理方法， 如果需要修改
-func NotFoundHandler(c Ctx) error {
+// NotFoundHandler 全局404处理方法
+var NotFoundHandler = func(c Ctx) error {
 	return ErrNotFound
 }
 
 // MethodNotAllowedHandler 全局405处理方法
-func MethodNotAllowedHandler(c Ctx) error {
+var MethodNotAllowedHandler = func(c Ctx) error {
 	return ErrMethodNotAllowed
 }
 

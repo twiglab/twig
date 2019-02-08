@@ -37,7 +37,7 @@ func (e *HttpError) SetInternal(err error) *HttpError {
 type HttpErrorHandler func(error, Ctx)
 
 // 默认的错误处理
-func DefaultHttpErrorHandler(err error, c Ctx) {
+var DefaultHttpErrorHandler = func(err error, c Ctx) {
 	var code int = http.StatusInternalServerError
 	var msg interface{}
 

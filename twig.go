@@ -34,6 +34,7 @@ type Namer interface {
 
 // Twig
 type Twig struct {
+	// 错误处理Handler
 	HttpErrorHandler HttpErrorHandler
 
 	Logger Logger // Logger 组件负责日志输出
@@ -49,14 +50,14 @@ type Twig struct {
 
 	pool sync.Pool
 
-	plugins map[string]Plugin
+	plugins map[string]Plugger
 
 	name string
 	id   string
 	typ  string
 }
 
-// 创建空的Twig
+// TODO 创建默认的Twig，后续可以用With*方法设置组建
 func TODO() *Twig {
 	t := &Twig{
 		Debug: false,
@@ -64,16 +65,24 @@ func TODO() *Twig {
 		name: "main",
 		typ:  "Twig",
 
-		plugins: make(map[string]Plugin),
+		plugins: make(map[string]Plugger),
 		ebus:    newbox(),
+
+		HttpErrorHandler: DefaultHttpErrorHandler,
 	}
+
+	/*
+		加入默认的UUID插件，twig的ID和RequestID中间件需要使用UUID插件
+	*/
 
 	idGen := uuidGen{}
 	t.id = idGen.NextID()
-	t.UsePlugin(idGen, &defaultBinder{})
+	t.UsePlugger(idGen, &defaultBinder{})
 
+	/*
+		设置默认的Twig组建
+	*/
 	t.
-		WithHttpErrorHandler(DefaultHttpErrorHandler).
 		WithLogger(NewLog(os.Stdout, "twig-")).
 		WithMuxer(NewRadixTree()).
 		WithServer(NewWork())
@@ -84,11 +93,6 @@ func TODO() *Twig {
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
 	Attach(l, t)
-	return t
-}
-
-func (t *Twig) WithHttpErrorHandler(eh HttpErrorHandler) *Twig {
-	t.HttpErrorHandler = eh
 	return t
 }
 
@@ -121,17 +125,17 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 }
 
 // UserPlugin 加入Plugin
-func (t *Twig) UsePlugin(plugins ...Plugin) *Twig {
-	for _, plugin := range plugins {
-		Attach(plugin, t)
-		t.plugins[plugin.ID()] = plugin
+func (t *Twig) UsePlugger(plugins ...Plugger) *Twig {
+	for _, plugger := range plugins {
+		Attach(plugger, t)
+		t.plugins[plugger.ID()] = plugger
 	}
 
 	return t
 }
 
 // Plugin 获取Plugin
-func (t *Twig) Plugin(id string) (p Plugin, ok bool) {
+func (t *Twig) GetPlugger(id string) (p Plugger, ok bool) {
 	p, ok = t.plugins[id]
 	return
 }

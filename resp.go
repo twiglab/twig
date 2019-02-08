@@ -32,21 +32,10 @@ func (r *ResponseWrap) Flush() {
 	r.Writer.(http.Flusher).Flush()
 }
 
-func (r *ResponseWrap) Before(fn RespCallBack) {
-	r.before = append(r.before, fn)
-}
-
-func (r *ResponseWrap) After(fn RespCallBack) {
-	r.after = append(r.after, fn)
-}
-
 // 设置header时查是否已经输出内容
 func (r *ResponseWrap) WriteHeader(code int) {
 	if r.Committed {
 		return
-	}
-	for _, fn := range r.before {
-		fn(r)
 	}
 	r.Status = code
 	r.Writer.WriteHeader(code)
@@ -60,9 +49,6 @@ func (r *ResponseWrap) Write(b []byte) (n int, err error) {
 	}
 	n, err = r.Writer.Write(b)
 	r.Len += int64(n)
-	for _, fn := range r.after {
-		fn(r)
-	}
 	return
 }
 
