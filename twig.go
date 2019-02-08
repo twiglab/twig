@@ -186,7 +186,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Server.Shutdown(ctx)
 }
 
-// AddHandler Regester#AddHandler
+// AddHandler Register#AddHandler
 func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
 	return t.Muxer.AddHandler(method, path, handler, m...)
 }
