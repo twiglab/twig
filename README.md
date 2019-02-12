@@ -16,6 +16,7 @@ import (
 	"github.com/twiglab/twig"
 	"github.com/twiglab/twig/middleware"
 	"time"
+	"net/http"
 )
 
 func main() {
@@ -23,8 +24,9 @@ func main() {
 
 	twig.Config(api).
 		Use(middleware.Recover()).
-		Get("/hello", twig.HelloTwig).
-		Done()
+		Get("/hello", func(c twig.Ctx){
+			return  c.String(http.StatusOK, "Hello Twig!")
+		})
 
 	api.Start()
 
