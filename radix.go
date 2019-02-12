@@ -214,11 +214,11 @@ func (c *radixTreeCtx) Params() UrlParams {
 	return pms
 }
 
-func (c *radixTreeCtx) URL(name string, i ...interface{}) string {
+func (c *radixTreeCtx) URL(name string, i ...interface{}) (url string) {
 	if route, ok := c.tree.routes[name]; ok {
-		return reverse(route.Path(), i...)
+		url = reverse(route.Path(), i...)
 	}
-	return ""
+	return
 }
 
 type RadixTree struct {

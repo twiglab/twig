@@ -18,8 +18,7 @@ func main() {
 	web.Pre(middleware.NewRateLimiter(rate.NewLimiter(rate.Every(100), 1000)))
 
 	web.Config().
-		Get("/hello", twig.HelloTwig).
-		Done()
+		Get("/hello", twig.HelloTwig)
 
 	web.Start()
 

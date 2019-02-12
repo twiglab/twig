@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8.3-dev"
+const Version = "0.8.3"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -218,5 +218,8 @@ func (t *Twig) SetType(typ string) {
 
 // Config 创建并返回Config工具
 func (t *Twig) Config() *Cfg {
-	return Config(t).WithNamer(t)
+	return &Cfg{
+		N: t,
+		R: t,
+	}
 }

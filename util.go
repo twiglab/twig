@@ -12,6 +12,13 @@ type Mounter interface {
 	Mount(Register)
 }
 
+// MountFunc Mount函数用于简化配置
+type MountFunc func(Register)
+
+func (m MountFunc) Mount(r Register) {
+	m(r)
+}
+
 // 获取当前请求路径
 func GetReqPath(r *http.Request) string {
 	path := r.URL.RawPath
@@ -30,11 +37,14 @@ func Attach(i interface{}, t *Twig) {
 	}
 }
 
+// Cfg Twig路由配置工具
+// 对当前的Register和Namer进行配置
 type Cfg struct {
 	R Register
 	N Namer
 }
 
+// Config 指定Register创建Config
 func Config(r Register) *Cfg {
 	return &Cfg{
 		R: r,
@@ -42,21 +52,19 @@ func Config(r Register) *Cfg {
 	}
 }
 
-func (c *Cfg) WithNamer(n Namer) *Cfg {
-	c.N = n
-	return c
-}
-
+// SetName 设置当前Namer的名称
 func (c *Cfg) SetName(name string) *Cfg {
 	c.N.SetName(name)
 	return c
 }
 
+// Use 当前Register增加中间件
 func (c *Cfg) Use(m ...MiddlewareFunc) *Cfg {
 	c.R.Use(m...)
 	return c
 }
 
+// AddHandler 增加Handler
 func (c *Cfg) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
 	c.N = c.R.AddHandler(method, path, handler, m...)
 	return c
@@ -94,19 +102,22 @@ func (c *Cfg) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg 
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
+// Mount 挂载Mounter到当前Register
 func (c *Cfg) Mount(mount Mounter) *Cfg {
 	mount.Mount(c.R)
 	c.N = nil
 	return c
 }
 
+// Static 增加静态路由
 func (c *Cfg) Static(path, file string, m ...MiddlewareFunc) *Cfg {
 	return c.Get(path, Static(file), m...)
 }
 
-func (c *Cfg) Done() {
-	c.R = nil
-	c.N = nil
+// Group 配置路由组
+func (c *Cfg) Group(path string, m MountFunc) *Cfg {
+	m(NewGroup(c.R, path))
+	return c
 }
 
 // Group 提供理由分组支持
