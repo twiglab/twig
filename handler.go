@@ -9,8 +9,10 @@ import (
 	"runtime"
 )
 
+// HandlerFunc Twig的Handler方法
 type HandlerFunc func(Ctx) error
 
+// Mount Mount当前Handler到注册器
 func (h HandlerFunc) Mount(reg Register, method, path string, m ...MiddlewareFunc) Router {
 	return reg.AddHandler(method, path, h, m...)
 }
@@ -21,6 +23,7 @@ func (m MiddlewareFunc) UsedBy(reg Register) {
 	reg.Use(m)
 }
 
+// WrapHttpHandler 包装http.Handler 为HandlerFunc
 func WrapHttpHandler(h http.Handler) HandlerFunc {
 	return func(c Ctx) error {
 		h.ServeHTTP(c.Resp(), c.Req())
@@ -28,6 +31,7 @@ func WrapHttpHandler(h http.Handler) HandlerFunc {
 	}
 }
 
+// WrapMiddleware 包装http.Handler为中间件
 func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
 		return func(c Ctx) (err error) {

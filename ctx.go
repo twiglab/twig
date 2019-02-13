@@ -24,16 +24,24 @@ type Ctx interface {
 
 	SetReq(*http.Request)
 
+	// IsTls 当前请求是否为Tls
 	IsTls() bool
+	//IsWebSocket 当前请求是否是WebSocket
 	IsWebSocket() bool
+	// IsXMLHttpRequest 当前请求是否为Ajax
 	IsXMLHttpRequest() bool
 
+	// Scheme 当前请求的的Scheme
 	Scheme() string
+	//Proto 当前请求的名称，版本号，次版本号
 	Proto() (string, int, int)
 
+	// RealIP 对方的IP
 	RealIP() string
+	// Path 当前请求的注册路径
 	Path() string
 
+	// Param 获取当前请求的URL参数
 	Param(string) string
 	Params() UrlParams
 
@@ -54,6 +62,7 @@ type Ctx interface {
 	Get(string) interface{}
 	Set(string, interface{})
 
+	// JSON JSON方式输出
 	JSON(int, interface{}) error
 	JSONBlob(int, []byte) error
 	JSONP(int, string, interface{}) error

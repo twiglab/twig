@@ -36,6 +36,7 @@ func (b *defaultBinder) ID() string {
 	return defBinderID
 }
 
+// Bind 绑定当前Ctx到i
 func (b *defaultBinder) Bind(i interface{}, c Ctx) (err error) {
 	req := c.Req()
 	if req.ContentLength == 0 {
@@ -284,6 +285,7 @@ func setFloatField(value string, bitSize int, field reflect.Value) error {
 	return err
 }
 
+// Bind 绑定ctx到变量
 func Bind(i interface{}, c Ctx) error {
 	binder, _ := GetBinder(defBinderID, c)
 	return binder.Bind(i, c)

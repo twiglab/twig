@@ -27,11 +27,13 @@ type Lookuper interface {
 	Lookup(string, string, *http.Request) Ctx
 }
 
+// Muxer Muxer 描述一个具体的路由
 type Muxer interface {
 	Lookuper
 	Register
 }
 
+// Wrapper Wrapper用于描述一个可配置的运行环境
 type Wrapper interface {
 	Matcher
 	Configer
@@ -52,26 +54,32 @@ type NamedRoute struct {
 	M string // method
 }
 
+// ID 命名路由的ID
 func (r *NamedRoute) ID() string {
 	return r.M + r.P
 }
 
+// Name 命名路由的名称
 func (r *NamedRoute) Name() string {
 	return r.N
 }
 
+// Method 命名路由的Http方法
 func (r *NamedRoute) Method() string {
 	return r.M
 }
 
+// Path 命名路由的注册路径
 func (r *NamedRoute) Path() string {
 	return r.P
 }
 
+// SetName  Namer#SetName
 func (r *NamedRoute) SetName(name string) {
 	r.N = name
 }
 
+// Type 类型
 func (r *NamedRoute) Type() string {
 	return "handler"
 }

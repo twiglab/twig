@@ -37,9 +37,9 @@ type Twig struct {
 	// 错误处理Handler
 	HttpErrorHandler HttpErrorHandler
 
-	Logger  Logger // Logger 组件负责日志输出
-	Server  Server // Server 负责Http请求处理
-	Wrapper Wrapper
+	Logger  Logger  // Logger 组件负责日志输出
+	Server  Server  // Server 负责Http请求处理
+	Wrapper Wrapper // Wrapper 运行环境
 
 	Debug bool
 
