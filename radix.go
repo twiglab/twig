@@ -169,9 +169,9 @@ type radixTreeCtx struct {
 	tree *RadixTree
 }
 
-func newRadixTreeCtx(t *Twig, tree *RadixTree) *radixTreeCtx {
+func newRadixTreeCtx(tree *RadixTree) *radixTreeCtx {
 	c := &radixTreeCtx{
-		PureCtx: NewPureCtx(t),
+		PureCtx: NewPureCtx(),
 		pvalues: make([]string, tree.maxParam),
 		tree:    tree,
 		handler: NotFoundHandler,
@@ -215,17 +215,18 @@ func (c *radixTreeCtx) Params() UrlParams {
 }
 
 func (c *radixTreeCtx) URL(name string, i ...interface{}) (url string) {
-	if route, ok := c.tree.routes[name]; ok {
+	if route, ok := c.tree.routers[name]; ok {
 		url = reverse(route.Path(), i...)
 	}
 	return
 }
 
+// RadixTree Twig默认的路由实现，同时也作为一个Wrapper
 type RadixTree struct {
-	tree   *node
-	routes map[string]Route
-	m      []MiddlewareFunc
-	t      *Twig
+	tree    *node
+	routers map[string]Router
+	m       []MiddlewareFunc
+	t       *Twig
 
 	pool     sync.Pool
 	maxParam int
@@ -236,19 +237,19 @@ func NewRadixTree() *RadixTree {
 		tree: &node{
 			methodHandler: new(methodHandler),
 		},
-		routes:   map[string]Route{},
+		routers:  map[string]Router{},
 		maxParam: 0,
 	}
 
 	r.pool.New = func() interface{} {
-		return r.newCtx(r.t)
+		return r.newCtx()
 	}
 
 	return r
 }
 
-func (r *RadixTree) newCtx(t *Twig) *radixTreeCtx {
-	return newRadixTreeCtx(t, r)
+func (r *RadixTree) newCtx() *radixTreeCtx {
+	return newRadixTreeCtx(r)
 }
 
 func (r *RadixTree) releaseCtx(c *radixTreeCtx) {
@@ -392,13 +393,12 @@ func (r *RadixTree) Find(method, path string, ctx *radixTreeCtx) {
 	cn := r.tree // Current node as root
 
 	var (
-		search = path
-		child  *node  // Child node
-		n      int    // Param counter
-		nk     kind   // Next kind
-		nn     *node  // Next node
-		ns     string // Next search
-		//pvalues = ctx.ParamValues() // Use the internal slice so the interface can keep the illusion of a dynamic slice
+		search  = path
+		child   *node         // Child node
+		n       int           // Param counter
+		nk      kind          // Next kind
+		nn      *node         // Next node
+		ns      string        // Next search
 		pvalues = ctx.pvalues // Use the internal slice so the interface can keep the illusion of a dynamic slice
 	)
 
@@ -536,7 +536,7 @@ func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
 	return c
 }
 
-func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Route {
+func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Router {
 	handler := Merge(h, m)
 	r.Add(method, path, handler)
 	rd := &NamedRoute{
@@ -544,8 +544,16 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 		P: path,
 		N: HandlerName(h),
 	}
-	r.routes[rd.ID()] = rd
+	r.routers[rd.ID()] = rd
 	return rd
+}
+
+func (r *RadixTree) Match(reqest *http.Request, t *Twig) Lookuper {
+	return r
+}
+
+func (r *RadixTree) Config() *Config {
+	return NewConfig(r)
 }
 
 func reverse(path string, params ...interface{}) string {

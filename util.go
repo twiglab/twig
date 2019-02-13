@@ -37,86 +37,88 @@ func Attach(i interface{}, t *Twig) {
 	}
 }
 
-// Cfg Twig路由配置工具
-// 对当前的Register和Namer进行配置
-type Cfg struct {
-	R Register
-	N Namer
+// Configer 用于配置
+type Configer interface {
+	Config() *Config
 }
 
-// Config 指定Register创建Config
-func Config(r Register) *Cfg {
-	return &Cfg{
-		R: r,
-		N: nil,
+// Config Twig路由配置工具
+type Config struct {
+	Register Register
+	namer    Namer
+}
+
+func NewConfig(r Register) *Config {
+	return &Config{
+		Register: r,
 	}
 }
 
 // SetName 设置当前Namer的名称
-func (c *Cfg) SetName(name string) *Cfg {
-	c.N.SetName(name)
+func (c *Config) SetName(name string) *Config {
+	c.namer.SetName(name)
 	return c
 }
 
 // Use 当前Register增加中间件
-func (c *Cfg) Use(m ...MiddlewareFunc) *Cfg {
-	c.R.Use(m...)
+func (c *Config) Use(m ...MiddlewareFunc) *Config {
+	c.Register.Use(m...)
 	return c
 }
 
 // AddHandler 增加Handler
-func (c *Cfg) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
-	c.N = c.R.AddHandler(method, path, handler, m...)
+func (c *Config) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+	c.namer = c.Register.AddHandler(method, path, handler, m...)
 	return c
 }
 
-func (c *Cfg) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(GET, path, handler, m...)
 }
 
-func (c *Cfg) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(POST, path, handler, m...)
 }
 
-func (c *Cfg) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(DELETE, path, handler, m...)
 }
 
-func (c *Cfg) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(PUT, path, handler, m...)
 }
 
-func (c *Cfg) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(PATCH, path, handler, m...)
 }
 
-func (c *Cfg) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(HEAD, path, handler, m...)
 }
 
-func (c *Cfg) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(OPTIONS, path, handler, m...)
 }
 
-func (c *Cfg) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
 // Mount 挂载Mounter到当前Register
-func (c *Cfg) Mount(mount Mounter) *Cfg {
-	mount.Mount(c.R)
-	c.N = nil
+func (c *Config) Mount(mount Mounter) *Config {
+	mount.Mount(c.Register)
+	c.namer = nil
 	return c
 }
 
 // Static 增加静态路由
-func (c *Cfg) Static(path, file string, m ...MiddlewareFunc) *Cfg {
+func (c *Config) Static(path, file string, m ...MiddlewareFunc) *Config {
 	return c.Get(path, Static(file), m...)
 }
 
 // Group 配置路由组
-func (c *Cfg) Group(path string, m MountFunc) *Cfg {
-	m(NewGroup(c.R, path))
+func (c *Config) Group(path string, m MountFunc) *Config {
+	m(NewGroup(c.Register, path))
 	return c
 }
 
@@ -138,7 +140,7 @@ func (g *Group) Use(mid ...MiddlewareFunc) {
 	g.m = append(g.m, mid...)
 }
 
-func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) Route {
+func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) Router {
 	name := HandlerName(h)
 	handler := Merge(h, g.m)
 
@@ -147,4 +149,8 @@ func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFu
 	route.SetName(name)
 
 	return route
+}
+
+func (g *Group) Config() *Config {
+	return NewConfig(g)
 }

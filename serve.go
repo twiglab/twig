@@ -7,7 +7,6 @@ import (
 
 // Server Http处理器接口
 type Server interface {
-	Handler(http.Handler)
 	Attacher
 	Cycler
 }
@@ -25,12 +24,9 @@ func NewWork() *Work {
 	}
 }
 
-func (w *Work) Handler(h http.Handler) {
-	w.Server.Handler = h
-}
-
-func (w *Work) Attach(twig *Twig) {
-	w.twig = twig
+func (w *Work) Attach(t *Twig) {
+	w.twig = t
+	w.Handler = t
 }
 
 func (w *Work) Shutdown(ctx context.Context) error {

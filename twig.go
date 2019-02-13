@@ -37,11 +37,9 @@ type Twig struct {
 	// 错误处理Handler
 	HttpErrorHandler HttpErrorHandler
 
-	Logger Logger // Logger 组件负责日志输出
-	Muxer  Muxer  // Muxer 组件负责路由处理
-	Server Server // Server 负责Http请求处理
-
-	ebus EventReactor
+	Logger  Logger // Logger 组件负责日志输出
+	Server  Server // Server 负责Http请求处理
+	Wrapper Wrapper
 
 	Debug bool
 
@@ -66,7 +64,6 @@ func TODO() *Twig {
 		typ:  "Twig",
 
 		plugins: make(map[string]Plugger),
-		ebus:    newbox(),
 
 		HttpErrorHandler: DefaultHttpErrorHandler,
 	}
@@ -84,28 +81,25 @@ func TODO() *Twig {
 	*/
 	t.
 		WithLogger(NewLog(os.Stdout, "twig-")).
-		WithMuxer(NewRadixTree()).
-		WithServer(NewWork())
+		WithServer(NewWork()).
+		WithWrapper(NewRadixTree())
 
 	return t
 }
 
 func (t *Twig) WithLogger(l Logger) *Twig {
 	t.Logger = l
-	Attach(l, t)
-	return t
-}
-
-func (t *Twig) WithMuxer(m Muxer) *Twig {
-	t.Muxer = m
-	m.Attach(t)
 	return t
 }
 
 func (t *Twig) WithServer(w Server) *Twig {
 	t.Server = w
-	w.Handler(t)
 	w.Attach(t)
+	return t
+}
+
+func (t *Twig) WithWrapper(wrapper Wrapper) *Twig {
+	t.Wrapper = wrapper
 	return t
 }
 
@@ -142,10 +136,12 @@ func (t *Twig) GetPlugger(id string) (p Plugger, ok bool) {
 
 // ServeHTTP 实现`http.Handler`接口
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c := t.Muxer.Lookup(r.Method, GetReqPath(r), r)
+	method, path := r.Method, GetReqPath(r)
+	lookuper := t.Wrapper.Match(r, t)
+	c := lookuper.Lookup(method, path, r)
 
 	mc := c.(muxerCtx)
-	mc.reset(w, r)
+	mc.reset(w, r, t)
 
 	defer mc.Release()
 
@@ -186,11 +182,6 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 	return t.Server.Shutdown(ctx)
 }
 
-// AddHandler Register#AddHandler
-func (t *Twig) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) Route {
-	return t.Muxer.AddHandler(method, path, handler, m...)
-}
-
 // SetName Namer#SetName
 func (t *Twig) SetName(name string) {
 	t.name = name
@@ -216,10 +207,7 @@ func (t *Twig) SetType(typ string) {
 	t.typ = typ
 }
 
-// Config 创建并返回Config工具
-func (t *Twig) Config() *Cfg {
-	return &Cfg{
-		N: t,
-		R: t,
-	}
+// Config Configer#Config
+func (t *Twig) Config() *Config {
+	return t.Wrapper.Config()
 }

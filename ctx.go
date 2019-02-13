@@ -84,8 +84,6 @@ type Ctx interface {
 	Twig() *Twig
 
 	Logger() Logger
-
-	Emit(string, *Event)
 }
 
 type PureCtx struct {
@@ -96,15 +94,11 @@ type PureCtx struct {
 	twig  *Twig
 
 	fact Ctx
-
-	emitter EventEmitter
 }
 
-func NewPureCtx(t *Twig) *PureCtx {
+func NewPureCtx() *PureCtx {
 	return &PureCtx{
-		resp:    newResponseWrap(nil),
-		twig:    t,
-		emitter: t.ebus,
+		resp: newResponseWrap(nil),
 	}
 }
 
@@ -112,11 +106,12 @@ func (c *PureCtx) SetFact(fact Ctx) {
 	c.fact = fact
 }
 
-func (c *PureCtx) reset(w http.ResponseWriter, r *http.Request) {
+func (c *PureCtx) reset(w http.ResponseWriter, r *http.Request, t *Twig) {
 	c.req = r
 	c.resp.reset(w)
 	c.query = nil
 	c.store = nil
+	c.twig = t
 }
 
 func (c *PureCtx) writeContentType(value string) {
@@ -420,12 +415,8 @@ func (c *PureCtx) Error(e error) {
 	c.twig.HttpErrorHandler(e, c.fact)
 }
 
-func (c *PureCtx) Emit(topic string, msg *Event) {
-	c.emitter.Emit(topic, msg)
-}
-
 type muxerCtx interface {
 	Release()
-	reset(http.ResponseWriter, *http.Request)
+	reset(http.ResponseWriter, *http.Request, *Twig)
 	Handler() HandlerFunc
 }
