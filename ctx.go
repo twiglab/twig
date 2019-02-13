@@ -394,6 +394,7 @@ func (c *PureCtx) NoContent(code int) error {
 	return nil
 }
 
+// Redirect 重定向
 func (c *PureCtx) Redirect(code int, url string) error {
 	if code < 300 || code > 308 {
 		return ErrInvalidRedirectCode
@@ -403,6 +404,7 @@ func (c *PureCtx) Redirect(code int, url string) error {
 	return nil
 }
 
+// Twig 获取当前Twig
 func (c *PureCtx) Twig() *Twig {
 	return c.twig
 }
