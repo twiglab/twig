@@ -556,6 +556,7 @@ func (r *RadixTree) Config() *Config {
 	return NewConfig(r)
 }
 
+//reverse path -> url
 func reverse(path string, params ...interface{}) string {
 	uri := new(bytes.Buffer)
 	ln := len(params)
