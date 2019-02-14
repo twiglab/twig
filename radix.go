@@ -1,14 +1,4 @@
 // RadixTree Twig中的默认路由
-// 参考Echo (https://echo.labstack.com) 中的路由实现
-// 做了注释和少量调整
-
-/*
-**********************
-向Echo开发团队致敬!
-向Echo开发者致敬!
-向Echo 致敬！
-**********************
-*/
 
 package twig
 
@@ -50,6 +40,8 @@ type node struct {
 	ppath         string
 	pnames        []string
 	methodHandler *methodHandler
+
+	count uint64
 }
 
 func newNode(t kind, pre string, p *node, c children, mh *methodHandler, ppath string, pnames []string) *node {
@@ -62,6 +54,8 @@ func newNode(t kind, pre string, p *node, c children, mh *methodHandler, ppath s
 		ppath:         ppath,
 		pnames:        pnames,
 		methodHandler: mh,
+
+		count: 0,
 	}
 }
 
@@ -378,7 +372,7 @@ func (r *RadixTree) insert(method, path string, h HandlerFunc, t kind, ppath str
 			if h != nil {
 				cn.addHandler(method, h)
 				cn.ppath = ppath
-				if len(cn.pnames) == 0 { // Issue #729
+				if len(cn.pnames) == 0 {
 					cn.pnames = pnames
 				}
 			}
@@ -523,19 +517,21 @@ func (r *RadixTree) Find(method, path string, ctx *radixTreeCtx) {
 	return
 }
 
-func (r *RadixTree) Use(m ...MiddlewareFunc) {
-	r.m = append(r.m, m...)
-}
-
+// Lookup Lookuper#Lookup
 func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
 	c := r.pool.Get().(*radixTreeCtx)
 	r.Find(method, path, c)
 	c.SetFact(c)
 	c.handler = Merge(c.handler, r.m)
-
 	return c
 }
 
+// Use Register#Use
+func (r *RadixTree) Use(m ...MiddlewareFunc) {
+	r.m = append(r.m, m...)
+}
+
+// AddHandler Register#AddHandler
 func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Router {
 	handler := Merge(h, m)
 	r.Add(method, path, handler)
@@ -548,10 +544,12 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 	return rd
 }
 
+// Matcher Matcher#Match
 func (r *RadixTree) Match(reqest *http.Request, t *Twig) Lookuper {
 	return r
 }
 
+// Config Configer#Config
 func (r *RadixTree) Config() *Config {
 	return NewConfig(r)
 }
