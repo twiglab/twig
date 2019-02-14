@@ -48,6 +48,7 @@ type Config struct {
 	namer    Namer
 }
 
+// NewConfig 创建Config
 func NewConfig(r Register) *Config {
 	return &Config{
 		Register: r,
