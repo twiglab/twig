@@ -137,7 +137,7 @@ func (t *Twig) GetPlugger(id string) (p Plugger, ok bool) {
 // ServeHTTP 实现`http.Handler`接口
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	method, path := r.Method, GetReqPath(r)
-	lookuper := t.Wrapper.Match(r, t)
+	lookuper := t.Wrapper.Match(r)
 	c := lookuper.Lookup(method, path, r)
 
 	mc := c.(muxerCtx)

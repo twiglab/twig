@@ -41,3 +41,8 @@ func (w *Work) Start() (err error) {
 	}()
 	return
 }
+
+// -------------------------------------- New
+
+type Connector interface {
+}

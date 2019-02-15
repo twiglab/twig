@@ -4,16 +4,6 @@ import (
 	"net/http"
 )
 
-// Matcher Matcher接口用于路由匹配
-type Matcher interface {
-	Match(*http.Request, *Twig) Lookuper
-}
-type MatcherFunc func(*http.Request, *Twig) Lookuper
-
-func (m MatcherFunc) Match(r *http.Request, t *Twig) Lookuper {
-	return m(r, t)
-}
-
 // Register 接口
 // 实现路由注册
 type Register interface {
@@ -33,10 +23,45 @@ type Muxer interface {
 	Register
 }
 
+// Matcher Matcher接口用于路由匹配
+type Matcher interface {
+	// Match 根据当前请求返回Lookuper， 如果不匹配，返回nil
+	Match(*http.Request) Lookuper
+}
+
 // Wrapper Wrapper用于描述一个可配置的运行环境
 type Wrapper interface {
 	Matcher
 	Configer
+}
+
+type MutiMux struct {
+	Macthers []Matcher
+	Default  Lookuper
+}
+
+func NewMutiMux(def Lookuper, matchers ...Matcher) *MutiMux {
+	return &MutiMux{
+		Macthers: matchers,
+		Default:  def,
+	}
+}
+
+func TwoMux(def Lookuper, matcher Matcher) *MutiMux {
+	return NewMutiMux(def, matcher)
+}
+
+func (w *MutiMux) Match(r *http.Request) (lookuper Lookuper) {
+	for _, m := range w.Macthers {
+		if lookuper = m.Match(r); lookuper != nil {
+			return
+		}
+	}
+	return w.Default
+}
+
+func (w *MutiMux) Config() *Config {
+	return nil
 }
 
 // Router 接口，Route接口用于描述一个已经加入Register的路由，由Register的AddHandler方法返回

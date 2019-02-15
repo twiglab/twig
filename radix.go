@@ -220,7 +220,6 @@ type RadixTree struct {
 	tree    *node
 	routers map[string]Router
 	m       []MiddlewareFunc
-	t       *Twig
 
 	pool     sync.Pool
 	maxParam int
@@ -248,10 +247,6 @@ func (r *RadixTree) newCtx() *radixTreeCtx {
 
 func (r *RadixTree) releaseCtx(c *radixTreeCtx) {
 	r.pool.Put(c)
-}
-
-func (r *RadixTree) Attach(t *Twig) {
-	r.t = t
 }
 
 func (r *RadixTree) Add(method, path string, h HandlerFunc) {
@@ -545,7 +540,7 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 }
 
 // Matcher Matcher#Match
-func (r *RadixTree) Match(reqest *http.Request, t *Twig) Lookuper {
+func (r *RadixTree) Match(reqest *http.Request) Lookuper {
 	return r
 }
 
