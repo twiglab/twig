@@ -13,24 +13,24 @@ go get github.com/twiglab/twig
 package main
 
 import (
-	"github.com/twiglab/twig"
-	"github.com/twiglab/twig/middleware"
-	"time"
 	"net/http"
+	"os"
+	"time"
+
+	"github.com/twiglab/twig"
 )
 
 func main() {
-	api := twig.TODO()
+	web := twig.TODO()
 
-	twig.Config(api).
-		Use(middleware.Recover()).
-		Get("/hello", func(c twig.Ctx){
-			return  c.String(http.StatusOK, "Hello Twig!")
+	web.Config().
+		Get("/hello", func(c twig.Ctx) error {
+			return c.String(http.StatusOK, "Hello Twig!")
 		})
 
-	api.Start()
+	web.Start()
 
-	twig.Signal(twig.Graceful(api, 15*time.Second))
+	twig.Signal(twig.Graceful(web, 15*time.Second), os.Interrupt)
 }
 ```
 
