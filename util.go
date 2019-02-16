@@ -37,12 +37,6 @@ func Attach(i interface{}, t *Twig) {
 	}
 }
 
-// Configer 用于配置
-type Configer interface {
-	// 返回配置对象，如果当前对象不支持配置，返回nil
-	Config() *Config
-}
-
 // Config Twig路由配置工具
 type Config struct {
 	Register Register

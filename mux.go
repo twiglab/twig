@@ -29,39 +29,37 @@ type Matcher interface {
 	Match(*http.Request) Lookuper
 }
 
-// Wrapper Wrapper用于描述一个可配置的运行环境
-type Wrapper interface {
-	Matcher
-	Configer
-}
-
-type MutiMux struct {
+type Muxes struct {
 	Macthers []Matcher
 	Default  Lookuper
 }
 
-func NewMutiMux(def Lookuper, matchers ...Matcher) *MutiMux {
-	return &MutiMux{
+func MutiMuxes(def Lookuper, matchers ...Matcher) *Muxes {
+	return &Muxes{
 		Macthers: matchers,
 		Default:  def,
 	}
 }
 
-func TwoMux(def Lookuper, matcher Matcher) *MutiMux {
-	return NewMutiMux(def, matcher)
+func TwoMuxes(def Lookuper, matcher Matcher) *Muxes {
+	return MutiMuxes(def, matcher)
 }
 
-func (w *MutiMux) Match(r *http.Request) (lookuper Lookuper) {
+func (w *Muxes) Lookup(method, path string, r *http.Request) Ctx {
+	var lookuper Lookuper
 	for _, m := range w.Macthers {
 		if lookuper = m.Match(r); lookuper != nil {
-			return
+			return lookuper.Lookup(method, path, r)
 		}
 	}
-	return w.Default
+	return w.Default.Lookup(method, path, r)
+}
+func (w *Muxes) AddHandler(string, string, HandlerFunc, ...MiddlewareFunc) Router {
+	panic("twig:MutiMux not supports AddHandler function")
 }
 
-func (w *MutiMux) Config() *Config {
-	return nil
+func (w *Muxes) Use(...MiddlewareFunc) {
+	panic("twig:MutiMux not supports Use function")
 }
 
 // Router 接口，Route接口用于描述一个已经加入Register的路由，由Register的AddHandler方法返回

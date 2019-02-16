@@ -37,9 +37,9 @@ type Twig struct {
 	// 错误处理Handler
 	HttpErrorHandler HttpErrorHandler
 
-	Logger  Logger  // Logger 组件负责日志输出
-	Server  Server  // Server 负责Http请求处理
-	Wrapper Wrapper // Wrapper 运行环境
+	Logger Logger // Logger 组件负责日志输出
+	Server Server // Server 负责Http请求处理
+	Muxer  Muxer  // 路由器
 
 	Debug bool
 
@@ -82,8 +82,13 @@ func TODO() *Twig {
 	t.
 		WithLogger(NewLog(os.Stdout, "twig-")).
 		WithServer(NewWork()).
-		WithWrapper(NewRadixTree())
+		WithMuxer(NewRadixTree())
 
+	return t
+}
+
+func (t *Twig) WithMuxer(mux Muxer) *Twig {
+	t.Muxer = mux
 	return t
 }
 
@@ -95,11 +100,6 @@ func (t *Twig) WithLogger(l Logger) *Twig {
 func (t *Twig) WithServer(w Server) *Twig {
 	t.Server = w
 	w.Attach(t)
-	return t
-}
-
-func (t *Twig) WithWrapper(wrapper Wrapper) *Twig {
-	t.Wrapper = wrapper
 	return t
 }
 
@@ -137,8 +137,7 @@ func (t *Twig) GetPlugger(id string) (p Plugger, ok bool) {
 // ServeHTTP 实现`http.Handler`接口
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	method, path := r.Method, GetReqPath(r)
-	lookuper := t.Wrapper.Match(r)
-	c := lookuper.Lookup(method, path, r)
+	c := t.Muxer.Lookup(method, path, r)
 
 	mc := c.(muxerCtx)
 	mc.reset(w, r, t)
@@ -209,5 +208,5 @@ func (t *Twig) SetType(typ string) {
 
 // Config Configer#Config
 func (t *Twig) Config() *Config {
-	return t.Wrapper.Config()
+	return NewConfig(t.Muxer)
 }

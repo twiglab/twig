@@ -539,16 +539,6 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 	return rd
 }
 
-// Matcher Matcher#Match
-func (r *RadixTree) Match(reqest *http.Request) Lookuper {
-	return r
-}
-
-// Config Configer#Config
-func (r *RadixTree) Config() *Config {
-	return NewConfig(r)
-}
-
 //reverse path -> url
 func reverse(path string, params ...interface{}) string {
 	uri := new(bytes.Buffer)
