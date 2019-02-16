@@ -71,7 +71,6 @@ Twig 的核心组件包括：请求执行环境，服务器与连接器，日志
 
 - Lookuper（路由执行器）用于查找符合当前请求路径的handler，并返回执行环境Ctx
 - Matcher （匹配器）用于根据当前请求返回符合条件的路由执行器
-- Wrapper（包装器）一个可以配置的环境包装器
 - Ctx （执行上下文）提供请求上下文
 
 除此之外，执行环境还包括：
@@ -80,7 +79,7 @@ Twig 的核心组件包括：请求执行环境，服务器与连接器，日志
 - Muxer（路由器）描述接口
 - HandlerFunc（请求处理）
 
-Twig 通过包装器的Match方法查找符合条件的路由查找器（应当为Muxer的实现），提供路由查找器的Lookup方法查找并执行路由，返回Ctx，用于执行Handler
+执行环境的核心是Lookuper和Register 用于路由查找和路由注册（即Muxer接口）。Twig 通过路由查找器的Lookup方法查找并执行路由，返回Ctx，用于执行Handler
 
 ```go
 // 这个例子详细的演示了上述组建的组合使用场景
@@ -125,7 +124,7 @@ func main() {
 		})
 
 	web := twig.TODO()
-	web.WithWrapper(twig.TwoMux(other, www))
+	web.WithMuxer(twig.TwoMuxes(other, www))
 
 	web.Start()
 
@@ -135,14 +134,15 @@ func main() {
 
 通过实现不同的匹配器，可以实现在不同的地址，端口，http header，区分处理
 
-Twig 提供了`MutiMux`工具辅助多路由集成，NewMutiMux 和 TwoMux 工具函数用于创建多路由和2个路由的Wrapper
+
+Twig 提供了`Muxes`辅助多路由集成，MutiMuxes 和 TwoMuxes 工具函数用于创建多路由和2个路由的Muxer
 
 静态文件处理并不是twig的擅长，提供多路由集成主要用于下来2个场景：
 
 1. 用于在不同的地址，端口上暴露不同的服务，例如在特殊的地址上暴露监控服务，用于和主体应用隔离
 2. subdomains
 
-多余2个路由不常见，大多数情况下一个足以。twig默认的路由`RadixTree`直接实现了执行环境的所有接口，作为默认组建在Twig创建是默认加入
+多于2个路由不常见，大多数情况下一个足以。twig默认的路由`RadixTree`直接实现了执行环境的所有接口，作为默认组建在Twig创建是默认加入
 
 #### 为什么需要这么复杂？
 
