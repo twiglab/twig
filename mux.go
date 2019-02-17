@@ -29,6 +29,12 @@ type Matcher interface {
 	Match(*http.Request) Lookuper
 }
 
+type MatherFunc func(*http.Request) Lookuper
+
+func (m MatherFunc) Match(r *http.Request) Lookuper {
+	return m(r)
+}
+
 type Muxes struct {
 	Macthers []Matcher
 	Default  Lookuper
