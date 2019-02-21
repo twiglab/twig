@@ -23,51 +23,6 @@ type Muxer interface {
 	Register
 }
 
-// Matcher Matcher接口用于路由匹配
-type Matcher interface {
-	// Match 根据当前请求返回Lookuper， 如果不匹配，返回nil
-	Match(*http.Request) Lookuper
-}
-
-type MatherFunc func(*http.Request) Lookuper
-
-func (m MatherFunc) Match(r *http.Request) Lookuper {
-	return m(r)
-}
-
-type Muxes struct {
-	Macthers []Matcher
-	Default  Lookuper
-}
-
-func MutiMuxes(def Lookuper, matchers ...Matcher) *Muxes {
-	return &Muxes{
-		Macthers: matchers,
-		Default:  def,
-	}
-}
-
-func TwoMuxes(def Lookuper, matcher Matcher) *Muxes {
-	return MutiMuxes(def, matcher)
-}
-
-func (w *Muxes) Lookup(method, path string, r *http.Request) Ctx {
-	var lookuper Lookuper
-	for _, m := range w.Macthers {
-		if lookuper = m.Match(r); lookuper != nil {
-			return lookuper.Lookup(method, path, r)
-		}
-	}
-	return w.Default.Lookup(method, path, r)
-}
-func (w *Muxes) AddHandler(string, string, HandlerFunc, ...MiddlewareFunc) Router {
-	panic("twig:MutiMux not supports AddHandler function")
-}
-
-func (w *Muxes) Use(...MiddlewareFunc) {
-	panic("twig:MutiMux not supports Use function")
-}
-
 // Router 接口，Route接口用于描述一个已经加入Register的路由，由Register的AddHandler方法返回
 // Router 提供命名路由的方法，被命名的路由可以用于Ctx.URL方法查找
 type Router interface {
