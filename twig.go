@@ -100,8 +100,9 @@ func (t *Twig) WithLogger(l Logger) *Twig {
 	return t
 }
 
-func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) {
+func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Config {
 	t.muxes.AddMuxer(mux, match)
+	return NewConfig(mux)
 }
 
 func (t *Twig) EnableDebug() *Twig {
