@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8.6"
+const Version = "v0.8.7-dev"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -89,15 +89,13 @@ func TODO() *Twig {
 	return t
 }
 
-func (t *Twig) WithServer(s Server) *Twig {
+func (t *Twig) WithServer(s Server) {
 	t.Server = s
 	s.Attach(t)
-	return t
 }
 
-func (t *Twig) WithLogger(l Logger) *Twig {
+func (t *Twig) WithLogger(l Logger) {
 	t.Logger = l
-	return t
 }
 
 func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Config {
@@ -105,9 +103,8 @@ func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Config {
 	return NewConfig(mux)
 }
 
-func (t *Twig) EnableDebug() *Twig {
+func (t *Twig) EnableDebug() {
 	t.Debug = true
-	return t
 }
 
 // Pre 中间件支持， 注意Pre中间件工作在路由之前
@@ -121,13 +118,11 @@ func (t *Twig) Use(m ...MiddlewareFunc) {
 }
 
 // UserPlugin 加入Plugin
-func (t *Twig) UsePlugger(plugins ...Plugger) *Twig {
+func (t *Twig) UsePlugger(plugins ...Plugger) {
 	for _, plugger := range plugins {
 		Attach(plugger, t)
 		t.plugins[plugger.ID()] = plugger
 	}
-
-	return t
 }
 
 // Plugin 获取Plugin
