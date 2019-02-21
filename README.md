@@ -70,7 +70,6 @@ Twig 的核心组件包括：请求执行环境，服务器与连接器，日志
 请求执行环境的功能是为应用提供一个上下文（Ctx），有下列组件构成：
 
 - Lookuper（路由执行器）用于查找符合当前请求路径的handler，并返回执行环境Ctx
-- Matcher （匹配器）用于根据当前请求返回符合条件的路由执行器
 - Ctx （执行上下文）提供请求上下文
 
 除此之外，执行环境还包括：
@@ -81,79 +80,6 @@ Twig 的核心组件包括：请求执行环境，服务器与连接器，日志
 
 执行环境的核心是Lookuper和Register 用于路由查找和路由注册（即Muxer接口）。Twig 通过路由查找器的Lookup方法查找并执行路由，返回Ctx，用于执行Handler
 
-```go
-// 这个例子详细的演示了上述组建的组合使用场景
-// 实现子域名，每个域名一个路由器
-package main
-
-import (
-	"net/http"
-	"os"
-	"time"
-
-	"github.com/twiglab/twig"
-)
-
-type WWWMux struct {
-	twig.Muxer
-}
-
-func (m *WWWMux) Match(r *http.Request) twig.Lookuper {
-	if r.Host == "www.twiglab.org" {
-		return m
-	}
-	return nil
-}
-
-func main() {
-
-	www := &WWWMux{
-		twig.NewRadixTree(),
-	}
-
-	other := twig.NewRadixTree()
-
-	twig.NewConfig(www).
-		Get("/", func(c twig.Ctx) error {
-			return c.String(http.StatusOK, "Hello www.twiglab.org!")
-		})
-
-	twig.NewConfig(other).
-		Get("/", func(c twig.Ctx) error {
-			return c.String(http.StatusOK, "Hello twig.twiglab.org!")
-		})
-
-	web := twig.TODO()
-	web.WithMuxer(twig.TwoMuxes(other, www))
-
-	web.Start()
-
-	twig.Signal(twig.Graceful(web, 15*time.Second), os.Interrupt)
-}
-```
-
-通过实现不同的匹配器，可以实现在不同的地址，端口，http header，区分处理
-
-
-Twig 提供了`Muxes`辅助多路由集成，MutiMuxes 和 TwoMuxes 工具函数用于创建多路由和2个路由的Muxer
-
-静态文件处理并不是twig的擅长，提供多路由集成主要用于下来2个场景：
-
-1. 用于在不同的地址，端口上暴露不同的服务，例如在特殊的地址上暴露监控服务，用于和主体应用隔离
-2. subdomains
-
-多于2个路由不常见，大多数情况下一个足以。twig默认的路由`RadixTree`直接实现了执行环境的所有接口，作为默认组建在Twig创建是默认加入
-
-#### 为什么需要这么复杂？
-
-基于以下考虑，twig的执行环境设计的比较复杂：
-
-- twig支持多路由，即twig并没有限制只能是用RedixTree，只要实现Muxer接口，均可以作为路由使用，用于实现特殊的路由处理规则
-- 现代应用都是在云环境下运行，作为一个应用的一部分（微服务），采集，上报，监控是构建应用的基本功能，twig有必要支持在不同的路由上提供不同的功能，做到功能隔离
-
-再次说明：一般情况下，twig默认的RedixTree足以应付大部分场景
-
-（阅读代码提示：RedixTree的实现位于redix.go中，路由处理需要考虑更快的执行效率，所以代码阅读起来可能有一些不太好理解）
 
 ---
 
