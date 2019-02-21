@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const Version = "0.8.4-dev"
+const Version = "0.8.6"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -39,7 +39,7 @@ type Twig struct {
 
 	Logger Logger // Logger 组件负责日志输出
 	Server Server // Server 负责Http请求处理
-	Muxer  Muxer  // 路由器
+	muxes  *Muxes // 路由器
 
 	Debug bool
 
@@ -79,16 +79,19 @@ func TODO() *Twig {
 	/*
 		设置默认的Twig组建
 	*/
-	t.
-		WithLogger(NewLog(os.Stdout, "twig-")).
-		WithServer(NewWork()).
-		WithMuxer(NewRadixTree())
+	t.WithLogger(NewLog(os.Stdout, "twig-"))
+	t.WithServer(NewWork())
+
+	t.muxes = &Muxes{
+		def: NewRadixTree(),
+	}
 
 	return t
 }
 
-func (t *Twig) WithMuxer(mux Muxer) *Twig {
-	t.Muxer = mux
+func (t *Twig) WithServer(s Server) *Twig {
+	t.Server = s
+	s.Attach(t)
 	return t
 }
 
@@ -97,10 +100,8 @@ func (t *Twig) WithLogger(l Logger) *Twig {
 	return t
 }
 
-func (t *Twig) WithServer(w Server) *Twig {
-	t.Server = w
-	w.Attach(t)
-	return t
+func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) {
+	t.muxes.AddMuxer(mux, match)
 }
 
 func (t *Twig) EnableDebug() *Twig {
@@ -137,7 +138,7 @@ func (t *Twig) GetPlugger(id string) (p Plugger, ok bool) {
 // ServeHTTP 实现`http.Handler`接口
 func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	method, path := r.Method, GetReqPath(r)
-	c := t.Muxer.Lookup(method, path, r)
+	c := t.muxes.Lookup(method, path, r)
 
 	mc := c.(muxerCtx)
 	mc.reset(w, r, t)
@@ -208,5 +209,5 @@ func (t *Twig) SetType(typ string) {
 
 // Config Configer#Config
 func (t *Twig) Config() *Config {
-	return NewConfig(t.Muxer)
+	return NewConfig(t.muxes.def)
 }
