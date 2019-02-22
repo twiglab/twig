@@ -71,7 +71,6 @@ func TODO() *Twig {
 	/*
 		加入默认的UUID插件，twig的ID和RequestID中间件需要使用UUID插件
 	*/
-
 	idGen := uuidGen{}
 	t.id = idGen.NextID()
 	t.UsePlugger(idGen, &defaultBinder{})
@@ -139,8 +138,6 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mc := c.(muxerCtx)
 	mc.reset(w, r, t)
 
-	defer mc.Release()
-
 	h := Merge(func(ctx Ctx) error { //闭包，处理Twig级中间件，结束后处理Pre中间件
 		handler := Merge(mc.Handler(), t.mid) // 处理Twig级中间件
 		return handler(ctx)
@@ -149,6 +146,8 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := h(c); err != nil { // 链式调用，如果出错，交给Twig的HttpErrorHandler处理
 		t.HttpErrorHandler(err, c)
 	}
+
+	mc.Release()
 }
 
 // Start Cycler#Start
