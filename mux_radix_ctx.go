@@ -15,42 +15,76 @@ import (
 	"strings"
 )
 
-func (c *PureCtx) writeContentType(value string) {
-	header := c.Resp().Header()
-	if header.Get(HeaderContentType) == "" {
-		header.Set(HeaderContentType, value)
-	}
+/*
+var radixTreeCtxPool sync.Pool
+
+func init() {
+	radixTreeCtxPool.New = newRadixTreeCtx()
+}
+*/
+
+type radixTreeCtx struct {
+	req   *http.Request
+	resp  *ResponseWrap
+	query url.Values
+	store M
+	twig  *Twig
+
+	// -------------
+
+	handler HandlerFunc
+	path    string
+
+	pnames  []string
+	pvalues []string
+
+	tree *RadixTree
 }
 
-func (c *PureCtx) Resp() *ResponseWrap {
+func newRadixTreeCtx(tree *RadixTree) *radixTreeCtx {
+	c := &radixTreeCtx{
+		pvalues: make([]string, tree.maxParam),
+		tree:    tree,
+		handler: NotFoundHandler,
+		resp:    newResponseWrap(nil),
+	}
+
+	return c
+}
+
+func (c *radixTreeCtx) writeContentType(value string) {
+	WriteContentType(c, value)
+}
+
+func (c *radixTreeCtx) Resp() *ResponseWrap {
 	return c.resp
 }
 
-func (c *PureCtx) Req() *http.Request {
+func (c *radixTreeCtx) Req() *http.Request {
 	return c.req
 }
 
-func (c *PureCtx) SetReq(r *http.Request) {
+func (c *radixTreeCtx) SetReq(r *http.Request) {
 	c.req = r
 }
 
-func (c *PureCtx) IsTls() bool {
-	return c.req.TLS != nil
+func (c *radixTreeCtx) IsTls() bool {
+	return IsTLS(c)
 }
 
-func (c *PureCtx) IsWebSocket() bool {
+func (c *radixTreeCtx) IsWebSocket() bool {
 	upgrade := c.req.Header.Get(HeaderUpgrade)
 	return upgrade == "websocket" || upgrade == "Websocket"
 }
 
-func (c *PureCtx) IsXMLHttpRequest() bool {
+func (c *radixTreeCtx) IsXMLHttpRequest() bool {
 	return strings.Contains(
 		c.req.Header.Get(HeaderXRequestedWith),
 		XMLHttpRequest,
 	)
 }
 
-func (c *PureCtx) Scheme() string {
+func (c *radixTreeCtx) Scheme() string {
 	if c.IsTls() {
 		return "https"
 	}
@@ -69,11 +103,7 @@ func (c *PureCtx) Scheme() string {
 	return "http"
 }
 
-func (c *PureCtx) Proto() (string, int, int) {
-	return c.req.Proto, c.req.ProtoMajor, c.req.ProtoMinor
-}
-
-func (c *PureCtx) RealIP() string {
+func (c *radixTreeCtx) RealIP() string {
 	if ip := c.req.Header.Get(HeaderXForwardedFor); ip != "" {
 		return strings.Split(ip, ", ")[0]
 	}
@@ -84,14 +114,14 @@ func (c *PureCtx) RealIP() string {
 	return ra
 }
 
-func (c *PureCtx) QueryParam(name string) string {
+func (c *radixTreeCtx) QueryParam(name string) string {
 	if c.query == nil {
 		c.query = c.req.URL.Query()
 	}
 	return c.query.Get(name)
 }
 
-func (c *PureCtx) QueryParams() url.Values {
+func (c *radixTreeCtx) QueryParams() url.Values {
 	if c.query == nil {
 		c.query = c.req.URL.Query()
 	}
@@ -99,15 +129,15 @@ func (c *PureCtx) QueryParams() url.Values {
 	return c.query
 }
 
-func (c *PureCtx) QueryString() string {
+func (c *radixTreeCtx) QueryString() string {
 	return c.req.URL.RawQuery
 }
 
-func (c *PureCtx) FormValue(name string) string {
+func (c *radixTreeCtx) FormValue(name string) string {
 	return c.req.FormValue(name)
 }
 
-func (c *PureCtx) FormParams() (url.Values, error) {
+func (c *radixTreeCtx) FormParams() (url.Values, error) {
 	if strings.HasPrefix(c.req.Header.Get(HeaderContentType), MIMEMultipartForm) {
 		if err := c.req.ParseMultipartForm(defaultMemory); err != nil {
 			return nil, err
@@ -120,17 +150,17 @@ func (c *PureCtx) FormParams() (url.Values, error) {
 	return c.req.Form, nil
 }
 
-func (c *PureCtx) FormFile(name string) (*multipart.FileHeader, error) {
+func (c *radixTreeCtx) FormFile(name string) (*multipart.FileHeader, error) {
 	_, fh, err := c.req.FormFile(name)
 	return fh, err
 }
 
-func (c *PureCtx) MultipartForm() (*multipart.Form, error) {
+func (c *radixTreeCtx) MultipartForm() (*multipart.Form, error) {
 	err := c.req.ParseMultipartForm(defaultMemory)
 	return c.req.MultipartForm, err
 }
 
-func (c *PureCtx) File(file string) (err error) {
+func (c *radixTreeCtx) File(file string) (err error) {
 	f, err := os.Open(file)
 	if err != nil {
 		return NotFoundHandler(c)
@@ -153,32 +183,32 @@ func (c *PureCtx) File(file string) (err error) {
 	return
 }
 
-func (c *PureCtx) Attachment(file, name string) error {
+func (c *radixTreeCtx) Attachment(file, name string) error {
 	return c.contentDisposition(file, name, "attachment")
 }
 
-func (c *PureCtx) Inline(file, name string) error {
+func (c *radixTreeCtx) Inline(file, name string) error {
 	return c.contentDisposition(file, name, "inline")
 }
 
-func (c *PureCtx) contentDisposition(file, name, dispositionType string) error {
+func (c *radixTreeCtx) contentDisposition(file, name, dispositionType string) error {
 	c.Resp().Header().Set(HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", dispositionType, name))
 	return c.File(file)
 }
 
-func (c *PureCtx) Cookie(name string) (*http.Cookie, error) {
+func (c *radixTreeCtx) Cookie(name string) (*http.Cookie, error) {
 	return c.req.Cookie(name)
 }
 
-func (c *PureCtx) SetCookie(cookie *http.Cookie) {
+func (c *radixTreeCtx) SetCookie(cookie *http.Cookie) {
 	http.SetCookie(c.Resp(), cookie)
 }
 
-func (c *PureCtx) Cookies() []*http.Cookie {
+func (c *radixTreeCtx) Cookies() []*http.Cookie {
 	return c.req.Cookies()
 }
 
-func (c *PureCtx) JSON(code int, val interface{}) error {
+func (c *radixTreeCtx) JSON(code int, val interface{}) error {
 	enc := json.NewEncoder(c.resp)
 	if c.twig.Debug {
 		enc.SetIndent("", "\t")
@@ -189,11 +219,11 @@ func (c *PureCtx) JSON(code int, val interface{}) error {
 	return enc.Encode(val)
 }
 
-func (c *PureCtx) JSONBlob(code int, bs []byte) error {
+func (c *radixTreeCtx) JSONBlob(code int, bs []byte) error {
 	return c.Blob(code, MIMEApplicationJSONCharsetUTF8, bs)
 }
 
-func (c *PureCtx) JSONP(code int, callback string, val interface{}) (err error) {
+func (c *radixTreeCtx) JSONP(code int, callback string, val interface{}) (err error) {
 	buf := new(bytes.Buffer)
 	enc := json.NewEncoder(buf)
 	if c.twig.Debug {
@@ -218,7 +248,7 @@ func (c *PureCtx) JSONP(code int, callback string, val interface{}) (err error) 
 	return
 }
 
-func (c *PureCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
+func (c *radixTreeCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
 	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
 	c.resp.WriteHeader(code)
 	if _, err = c.resp.Write([]byte(callback + "(")); err != nil {
@@ -231,22 +261,19 @@ func (c *PureCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
 	return
 }
 
-func (c *PureCtx) Blob(code int, contentType string, bs []byte) (err error) {
-	c.writeContentType(contentType)
-	c.resp.WriteHeader(code)
-	_, err = c.resp.Write(bs)
-	return
+func (c *radixTreeCtx) Blob(code int, contentType string, bs []byte) (err error) {
+	return Byte(c, code, contentType, bs)
 }
 
-func (c *PureCtx) HTMLBlob(code int, bs []byte) error {
+func (c *radixTreeCtx) HTMLBlob(code int, bs []byte) error {
 	return c.Blob(code, MIMETextHTMLCharsetUTF8, bs)
 }
 
-func (c *PureCtx) HTML(code int, html string) error {
+func (c *radixTreeCtx) HTML(code int, html string) error {
 	return c.HTMLBlob(code, []byte(html))
 }
 
-func (c *PureCtx) XML(code int, i interface{}) (err error) {
+func (c *radixTreeCtx) XML(code int, i interface{}) (err error) {
 	b, err := xml.Marshal(i)
 	if err != nil {
 		return
@@ -254,7 +281,7 @@ func (c *PureCtx) XML(code int, i interface{}) (err error) {
 	return c.XMLBlob(code, b)
 }
 
-func (c *PureCtx) XMLBlob(code int, b []byte) (err error) {
+func (c *radixTreeCtx) XMLBlob(code int, b []byte) (err error) {
 	c.writeContentType(MIMEApplicationXMLCharsetUTF8)
 	c.resp.WriteHeader(code)
 	if _, err = c.resp.Write([]byte(xml.Header)); err != nil {
@@ -264,39 +291,39 @@ func (c *PureCtx) XMLBlob(code int, b []byte) (err error) {
 	return
 }
 
-func (c *PureCtx) Stream(code int, contentType string, r io.Reader) (err error) {
+func (c *radixTreeCtx) Stream(code int, contentType string, r io.Reader) (err error) {
 	c.writeContentType(contentType)
 	c.resp.WriteHeader(code)
 	_, err = c.resp.ReadFrom(r)
 	return
 }
 
-func (c *PureCtx) String(code int, str string) error {
-	return c.Blob(code, MIMETextPlainCharsetUTF8, []byte(str))
+func (c *radixTreeCtx) String(code int, str string) error {
+	return UnsafeString(c, code, str)
 }
 
-func (c *PureCtx) Stringf(code int, format string, v ...interface{}) error {
-	return c.String(code, fmt.Sprintf(format, v...))
+func (c *radixTreeCtx) Stringf(code int, format string, v ...interface{}) error {
+	return UnsafeString(c, code, fmt.Sprintf(format, v...))
 }
 
-func (c *PureCtx) Get(key string) interface{} {
+func (c *radixTreeCtx) Get(key string) interface{} {
 	return c.store[key]
 }
 
-func (c *PureCtx) Set(key string, val interface{}) {
+func (c *radixTreeCtx) Set(key string, val interface{}) {
 	if c.store == nil {
 		c.store = make(M)
 	}
 	c.store[key] = val
 }
 
-func (c *PureCtx) NoContent(code int) error {
+func (c *radixTreeCtx) NoContent(code int) error {
 	c.resp.WriteHeader(code)
 	return nil
 }
 
 // Redirect 重定向
-func (c *PureCtx) Redirect(code int, url string) error {
+func (c *radixTreeCtx) Redirect(code int, url string) error {
 	if code < 300 || code > 308 {
 		return ErrInvalidRedirectCode
 	}
@@ -306,48 +333,19 @@ func (c *PureCtx) Redirect(code int, url string) error {
 }
 
 // Twig 获取当前Twig
-func (c *PureCtx) Twig() *Twig {
+func (c *radixTreeCtx) Twig() *Twig {
 	return c.twig
 }
 
-func (c *PureCtx) Logger() Logger {
+func (c *radixTreeCtx) Logger() Logger {
 	return c.twig.Logger
 }
 
-func (c *PureCtx) Error(e error) {
+func (c *radixTreeCtx) Error(e error) {
 	c.twig.HttpErrorHandler(e, c)
 }
 
-type PureCtx struct {
-	req   *http.Request
-	resp  *ResponseWrap
-	query url.Values
-	store M
-	twig  *Twig
-
-	// -------------
-
-	handler HandlerFunc
-	path    string
-
-	pnames  []string
-	pvalues []string
-
-	tree *RadixTree
-}
-
-func newPureCtx(tree *RadixTree) *PureCtx {
-	c := &PureCtx{
-		pvalues: make([]string, tree.maxParam),
-		tree:    tree,
-		handler: NotFoundHandler,
-		resp:    newResponseWrap(nil),
-	}
-
-	return c
-}
-
-func (c *PureCtx) Reset(w http.ResponseWriter, r *http.Request, t *Twig) {
+func (c *radixTreeCtx) Reset(w http.ResponseWriter, r *http.Request, t *Twig) {
 	c.req = r
 	c.resp.reset(w)
 	c.query = nil
@@ -356,19 +354,19 @@ func (c *PureCtx) Reset(w http.ResponseWriter, r *http.Request, t *Twig) {
 
 }
 
-func (c *PureCtx) Release() {
+func (c *radixTreeCtx) Release() {
 	c.tree.releaseCtx(c)
 }
 
-func (c *PureCtx) Path() string {
+func (c *radixTreeCtx) Path() string {
 	return c.path
 }
 
-func (c *PureCtx) Handler() HandlerFunc {
+func (c *radixTreeCtx) Handler() HandlerFunc {
 	return c.handler
 }
 
-func (c *PureCtx) Param(name string) string {
+func (c *radixTreeCtx) Param(name string) string {
 	for i, n := range c.pnames {
 		if i < len(c.pvalues) {
 			if n == name {
@@ -377,11 +375,4 @@ func (c *PureCtx) Param(name string) string {
 		}
 	}
 	return ""
-}
-
-func (c *PureCtx) URL(name string, i ...interface{}) (url string) {
-	if route, ok := c.tree.routers[name]; ok {
-		url = reverse(route.Path(), i...)
-	}
-	return
 }

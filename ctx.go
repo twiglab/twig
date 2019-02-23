@@ -23,8 +23,6 @@ type Ctx interface {
 
 	// Scheme 当前请求的的Scheme
 	Scheme() string
-	//Proto 当前请求的名称，版本号，次版本号
-	Proto() (string, int, int)
 
 	// RealIP 对方的IP
 	RealIP() string
@@ -68,8 +66,6 @@ type Ctx interface {
 
 	String(int, string) error
 	Stringf(int, string, ...interface{}) error
-
-	URL(string, ...interface{}) string
 
 	Cookie(string) (*http.Cookie, error)
 	SetCookie(*http.Cookie)

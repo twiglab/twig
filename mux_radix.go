@@ -3,8 +3,6 @@
 package twig
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
 	"sync"
 )
@@ -177,11 +175,11 @@ func NewRadixTree() *RadixTree {
 	return r
 }
 
-func (r *RadixTree) newCtx() *PureCtx {
-	return newPureCtx(r)
+func (r *RadixTree) newCtx() *radixTreeCtx {
+	return newRadixTreeCtx(r)
 }
 
-func (r *RadixTree) releaseCtx(c *PureCtx) {
+func (r *RadixTree) releaseCtx(c *radixTreeCtx) {
 	r.pool.Put(c)
 }
 
@@ -312,7 +310,7 @@ func (r *RadixTree) insert(method, path string, h HandlerFunc, t kind, ppath str
 	}
 }
 
-func (r *RadixTree) Find(method, path string, ctx *PureCtx) {
+func (r *RadixTree) Find(method, path string, ctx *radixTreeCtx) {
 	ctx.path = path
 	//ctx.SetPath(path)
 	cn := r.tree // Current node as root
@@ -450,7 +448,7 @@ func (r *RadixTree) Find(method, path string, ctx *PureCtx) {
 
 // Lookup Lookuper#Lookup
 func (r *RadixTree) Lookup(method, path string, req *http.Request) MuxerCtx {
-	c := r.pool.Get().(*PureCtx)
+	c := r.pool.Get().(*radixTreeCtx)
 	r.Find(method, path, c)
 	c.handler = Merge(c.handler, r.m)
 	return c
@@ -472,23 +470,4 @@ func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...M
 	}
 	r.routers[rd.ID()] = rd
 	return rd
-}
-
-//reverse path -> url
-func reverse(path string, params ...interface{}) string {
-	uri := new(bytes.Buffer)
-	ln := len(params)
-	n := 0
-	for i, l := 0, len(path); i < l; i++ {
-		if path[i] == ':' && n < ln {
-			for ; i < l && path[i] != '/'; i++ {
-			}
-			uri.WriteString(fmt.Sprintf("%v", params[n]))
-			n++
-		}
-		if i < l {
-			uri.WriteByte(path[i])
-		}
-	}
-	return uri.String()
 }
