@@ -107,3 +107,12 @@ func ServerInfo() MiddlewareFunc {
 		}
 	}
 }
+
+// Nop Nop middleware for testing
+func Nop() MiddlewareFunc {
+	return func(next HandlerFunc) HandlerFunc {
+		return func(c Ctx) error {
+			return next(c)
+		}
+	}
+}

@@ -135,19 +135,39 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	method, path := r.Method, GetReqPath(r)
 	c := t.muxes.Lookup(method, path, r)
 
-	mc := c.(muxerCtx)
-	mc.reset(w, r, t)
+	c.Reset(w, r, t)
 
-	h := Merge(func(ctx Ctx) error { //闭包，处理Twig级中间件，结束后处理Pre中间件
-		handler := Merge(mc.Handler(), t.mid) // 处理Twig级中间件
-		return handler(ctx)
-	}, t.pre) // 处理Pre中间件
+	/*
+		h := Merge(func(ctx Ctx) error { //闭包，处理Twig级中间件，结束后处理Pre中间件
+			handler := Merge(c.Handler(), t.mid) // 处理Twig级中间件
+			return handler(ctx)
+		}, t.pre) // 处理Pre中间件
+	*/
+
+	// ------------------------------------------------------------
+	// 优化上面注释的代码
+	// 根据有无pre的情况分开处理
+	// 性能优化 #21
+	var h HandlerFunc
+
+	if t.pre == nil {
+		h = Merge(c.Handler(), t.mid)
+	} else {
+		h = Merge(
+			func(c Ctx) error {
+				handler := Merge(c.Handler(), t.mid)
+				return handler(c)
+			},
+			t.pre,
+		)
+	}
+	// ------------------------------------------------------------
 
 	if err := h(c); err != nil { // 链式调用，如果出错，交给Twig的HttpErrorHandler处理
 		t.HttpErrorHandler(err, c)
 	}
 
-	mc.Release()
+	c.Release()
 }
 
 // Start Cycler#Start

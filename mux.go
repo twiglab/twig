@@ -14,7 +14,7 @@ type Register interface {
 // Lookuper 接口
 // 实现路由查找
 type Lookuper interface {
-	Lookup(string, string, *http.Request) Ctx
+	Lookup(string, string, *http.Request) MuxerCtx
 }
 
 // Muxer Muxer 描述一个具体的路由

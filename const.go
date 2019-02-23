@@ -133,3 +133,7 @@ var (
 const defaultMemory = 32 << 20 // 32 MB
 
 const XMLHttpRequest = "XMLHttpRequest"
+
+const (
+	OK = http.StatusOK // 十分常用
+)

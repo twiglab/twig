@@ -31,7 +31,7 @@ type Muxes struct {
 	def Muxer
 }
 
-func (m *Muxes) Lookup(method string, path string, req *http.Request) Ctx {
+func (m *Muxes) Lookup(method string, path string, req *http.Request) MuxerCtx {
 	for _, mux := range m.ms {
 		if mux.Match(req) {
 			return mux.Lookup(method, path, req)

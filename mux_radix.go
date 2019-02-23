@@ -151,71 +151,7 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 	return NotFoundHandler
 }
 
-type radixTreeCtx struct {
-	*PureCtx
-
-	handler HandlerFunc
-	path    string
-
-	pnames  []string
-	pvalues []string
-
-	tree *RadixTree
-}
-
-func newRadixTreeCtx(tree *RadixTree) *radixTreeCtx {
-	c := &radixTreeCtx{
-		PureCtx: NewPureCtx(),
-		pvalues: make([]string, tree.maxParam),
-		tree:    tree,
-		handler: NotFoundHandler,
-	}
-
-	return c
-}
-
-func (c *radixTreeCtx) Release() {
-	c.SetFact(nil)
-	c.tree.releaseCtx(c)
-}
-
-func (c *radixTreeCtx) Path() string {
-	return c.path
-}
-
-func (c *radixTreeCtx) Handler() HandlerFunc {
-	return c.handler
-}
-
-func (c *radixTreeCtx) Param(name string) string {
-	for i, n := range c.pnames {
-		if i < len(c.pvalues) {
-			if n == name {
-				return c.pvalues[i]
-			}
-		}
-	}
-	return ""
-}
-
-func (c *radixTreeCtx) Params() UrlParams {
-	pms := make(UrlParams)
-	for i, n := range c.pnames {
-		if i < len(c.pvalues) {
-			pms[n] = c.pvalues[i]
-		}
-	}
-	return pms
-}
-
-func (c *radixTreeCtx) URL(name string, i ...interface{}) (url string) {
-	if route, ok := c.tree.routers[name]; ok {
-		url = reverse(route.Path(), i...)
-	}
-	return
-}
-
-// RadixTree Twig默认的路由实现，同时也作为一个Wrapper
+// RadixTree Twig默认的路由实现
 type RadixTree struct {
 	tree    *node
 	routers map[string]Router
@@ -241,11 +177,11 @@ func NewRadixTree() *RadixTree {
 	return r
 }
 
-func (r *RadixTree) newCtx() *radixTreeCtx {
-	return newRadixTreeCtx(r)
+func (r *RadixTree) newCtx() *PureCtx {
+	return newPureCtx(r)
 }
 
-func (r *RadixTree) releaseCtx(c *radixTreeCtx) {
+func (r *RadixTree) releaseCtx(c *PureCtx) {
 	r.pool.Put(c)
 }
 
@@ -376,7 +312,7 @@ func (r *RadixTree) insert(method, path string, h HandlerFunc, t kind, ppath str
 	}
 }
 
-func (r *RadixTree) Find(method, path string, ctx *radixTreeCtx) {
+func (r *RadixTree) Find(method, path string, ctx *PureCtx) {
 	ctx.path = path
 	//ctx.SetPath(path)
 	cn := r.tree // Current node as root
@@ -513,10 +449,9 @@ func (r *RadixTree) Find(method, path string, ctx *radixTreeCtx) {
 }
 
 // Lookup Lookuper#Lookup
-func (r *RadixTree) Lookup(method, path string, req *http.Request) Ctx {
-	c := r.pool.Get().(*radixTreeCtx)
+func (r *RadixTree) Lookup(method, path string, req *http.Request) MuxerCtx {
+	c := r.pool.Get().(*PureCtx)
 	r.Find(method, path, c)
-	c.SetFact(c)
 	c.handler = Merge(c.handler, r.m)
 	return c
 }
