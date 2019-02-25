@@ -4,10 +4,9 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"sync"
 )
 
-const Version = "v0.8.7-dev"
+const Version = "v0.8.7"
 
 // Identifier 标识符接口
 type Identifier interface {
@@ -45,8 +44,6 @@ type Twig struct {
 
 	pre []MiddlewareFunc
 	mid []MiddlewareFunc
-
-	pool sync.Pool
 
 	plugins map[string]Plugger
 
