@@ -78,10 +78,12 @@ type Ctx interface {
 	Twig() *Twig
 
 	Logger() Logger
-	Handler() HandlerFunc
+
+	// Hook(http.Handler)
 }
 
 type MuxerCtx interface {
+	Handler() HandlerFunc
 	Release()
 	Reset(http.ResponseWriter, *http.Request, *Twig)
 

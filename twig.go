@@ -38,7 +38,7 @@ type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
 	Logger Logger // Logger 组件负责日志输出
-	Server Server // Server 负责Http请求处理
+	lead   *Lead  // Server 组
 	muxes  *Muxes // 路由器
 
 	Debug bool
@@ -79,7 +79,10 @@ func TODO() *Twig {
 		设置默认的Twig组建
 	*/
 	t.WithLogger(NewLog(os.Stdout, "twig-"))
-	t.WithServer(NewWork())
+
+	t.lead = &Lead{
+		t: t,
+	}
 
 	t.muxes = &Muxes{
 		def: NewRadixTree(),
@@ -88,13 +91,12 @@ func TODO() *Twig {
 	return t
 }
 
-func (t *Twig) WithServer(s Server) {
-	t.Server = s
-	s.Attach(t)
-}
-
 func (t *Twig) WithLogger(l Logger) {
 	t.Logger = l
+}
+
+func (t *Twig) AddServer(s ...Server) {
+	t.lead.AddServer(s...)
 }
 
 func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Config {
@@ -149,13 +151,14 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 根据有无pre的情况分开处理
 	// 性能优化 #21
 	var h HandlerFunc
+	mh := c.Handler()
 
 	if t.pre == nil {
-		h = Merge(c.Handler(), t.mid)
+		h = Merge(mh, t.mid)
 	} else {
 		h = Merge(
 			func(c Ctx) error {
-				handler := Merge(c.Handler(), t.mid)
+				handler := Merge(mh, t.mid)
 				return handler(c)
 			},
 			t.pre,
@@ -182,7 +185,7 @@ func (t *Twig) Start() error {
 		}
 	}
 
-	return t.Server.Start()
+	return t.lead.Start()
 }
 
 // Start Cycler#Shutdown
@@ -194,7 +197,7 @@ func (t *Twig) Shutdown(ctx context.Context) error {
 			}
 		}
 	}
-	return t.Server.Shutdown(ctx)
+	return t.lead.Shutdown(ctx)
 }
 
 // SetName Namer#SetName

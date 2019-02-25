@@ -2,6 +2,7 @@ package twig
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
@@ -13,61 +14,93 @@ type Server interface {
 	Cycler
 }
 
-type Work struct {
+type twigServer struct {
 	*http.Server
 	twig *Twig
+	ln   net.Listener
 }
 
-func NewWork() *Work {
-	return &Work{
-		Server: &http.Server{
-			Addr: DefaultAddress,
-		},
-	}
+func (s *twigServer) Attach(t *Twig) {
+	s.twig = t
+	s.Handler = t
 }
 
-func (w *Work) Attach(t *Twig) {
-	w.twig = t
-	w.Handler = t
+func (s *twigServer) Shutdown(ctx context.Context) error {
+	return s.Server.Shutdown(ctx)
 }
 
-func (w *Work) Shutdown(ctx context.Context) error {
-	return w.Server.Shutdown(ctx)
+type httpServer struct {
+	*twigServer
 }
 
-func (w *Work) Start() (err error) {
+func (h *httpServer) Start() (err error) {
 	go func() {
-		if err = w.Server.ListenAndServe(); err != nil {
-			w.twig.Logger.Panic(err)
+		if err = h.Server.Serve(h.ln); err != nil {
+			h.twig.Logger.Panic(err)
 		}
 	}()
 	return
 }
 
-// -------------------------------------- New
-
-func MustListener(l net.Listener, err error) net.Listener {
-	if err != nil {
-		panic(err)
+func WrapListener(ln net.Listener) Server {
+	return &httpServer{
+		twigServer: &twigServer{
+			Server: &http.Server{},
+			ln:     ln,
+		},
 	}
-	return l
+}
+
+func NewServer(addr string) Server {
+	return WrapListener(NewKeepAliveListener(addr))
+}
+
+type tlsServer struct {
+	*twigServer
+	cert string
+	key  string
+}
+
+func (h *tlsServer) Start() (err error) {
+	go func() {
+		if err = h.Server.ServeTLS(h.ln, h.cert, h.key); err != nil {
+			h.twig.Logger.Panic(err)
+		}
+	}()
+	return
+}
+
+func WrapTLSServer(ln net.Listener, cert, key string) Server {
+	return &tlsServer{
+		twigServer: &twigServer{
+			Server: &http.Server{},
+			ln:     ln,
+		},
+		cert: cert,
+		key:  key,
+	}
+}
+
+func WrapTLSServerConifg(ln net.Listener, config *tls.Config) Server {
+	return WrapTLSServer(tls.NewListener(ln, config), "", "")
 }
 
 type KeepAliveListener struct {
 	*net.TCPListener
-	count uint64
 }
 
-func NewKeepAliveListener(address string) (l *KeepAliveListener, err error) {
+func NewKeepAliveListener(address string) (l *KeepAliveListener) {
+
 	var addr *net.TCPAddr
 	var ln *net.TCPListener
+	var err error
 
 	if addr, err = net.ResolveTCPAddr("tcp", address); err != nil {
-		return
+		panic(err)
 	}
 
 	if ln, err = net.ListenTCP("tcp", addr); err != nil {
-		return
+		panic(err)
 	}
 
 	l = &KeepAliveListener{TCPListener: ln}
@@ -76,26 +109,13 @@ func NewKeepAliveListener(address string) (l *KeepAliveListener, err error) {
 }
 
 func (l *KeepAliveListener) Accept() (net.Conn, error) {
-	conn, err := l.AcceptTCP()
-	if err != nil {
+	var conn *net.TCPConn
+	var err error
+	if conn, err = l.AcceptTCP(); err != nil {
 		return nil, err
 	}
 	conn.SetKeepAlive(true)
 	conn.SetKeepAlivePeriod(3 * time.Minute)
-	l.count++
 
-	return &tcpConn{
-		KeepAliveListener: l,
-		Conn:              conn,
-	}, nil
-}
-
-type tcpConn struct {
-	net.Conn
-	*KeepAliveListener
-}
-
-func (c tcpConn) Close() error {
-	c.KeepAliveListener.count--
-	return c.Conn.Close()
+	return conn, err
 }
