@@ -3,6 +3,7 @@ package twig
 import (
 	"net/http"
 	"reflect"
+	"strings"
 	"unsafe"
 )
 
@@ -39,4 +40,35 @@ func UnsafeString(w http.ResponseWriter, code int, str string) error {
 
 func String(w http.ResponseWriter, code int, str string) error {
 	return Byte(w, code, MIMETextPlainCharsetUTF8, []byte(str))
+}
+
+func IsWebSocket(r *http.Request) bool {
+	upgrade := r.Header.Get(HeaderUpgrade)
+	return upgrade == "websocket" || upgrade == "Websocket"
+}
+
+func IsXMLHTTPRequest(r *http.Request) bool {
+	return strings.Contains(
+		r.Header.Get(HeaderXRequestedWith),
+		XMLHttpRequest,
+	)
+}
+
+func Scheme(r *http.Request) string {
+	if IsTLS(r) {
+		return "https"
+	}
+	if scheme := r.Header.Get(HeaderXForwardedProto); scheme != "" {
+		return scheme
+	}
+	if scheme := r.Header.Get(HeaderXForwardedProtocol); scheme != "" {
+		return scheme
+	}
+	if ssl := r.Header.Get(HeaderXForwardedSsl); ssl == "on" {
+		return "https"
+	}
+	if scheme := r.Header.Get(HeaderXUrlScheme); scheme != "" {
+		return scheme
+	}
+	return "http"
 }

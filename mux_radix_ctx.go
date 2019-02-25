@@ -73,34 +73,15 @@ func (c *radixTreeCtx) IsTls() bool {
 }
 
 func (c *radixTreeCtx) IsWebSocket() bool {
-	upgrade := c.req.Header.Get(HeaderUpgrade)
-	return upgrade == "websocket" || upgrade == "Websocket"
+	return IsWebSocket(c.req)
 }
 
 func (c *radixTreeCtx) IsXMLHttpRequest() bool {
-	return strings.Contains(
-		c.req.Header.Get(HeaderXRequestedWith),
-		XMLHttpRequest,
-	)
+	return IsXMLHTTPRequest(c.req)
 }
 
 func (c *radixTreeCtx) Scheme() string {
-	if c.IsTls() {
-		return "https"
-	}
-	if scheme := c.req.Header.Get(HeaderXForwardedProto); scheme != "" {
-		return scheme
-	}
-	if scheme := c.req.Header.Get(HeaderXForwardedProtocol); scheme != "" {
-		return scheme
-	}
-	if ssl := c.req.Header.Get(HeaderXForwardedSsl); ssl == "on" {
-		return "https"
-	}
-	if scheme := c.req.Header.Get(HeaderXUrlScheme); scheme != "" {
-		return scheme
-	}
-	return "http"
+	return Scheme(c.req)
 }
 
 func (c *radixTreeCtx) RealIP() string {
