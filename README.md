@@ -3,6 +3,29 @@ twig 是一个面向webapi的简单的webserver
 
 > Twig 采用QQ群提供技术支持，QQ群号：472900117
 
+## 性能测试
+
+```
+goos: linux
+goarch: amd64
+pkg: web
+BenchmarkTwigStatic-2      	   20000	     71232 ns/op	     870 B/op	       0 allocs/op
+BenchmarkTwigGitHubAPI-2   	   10000	    101092 ns/op	     878 B/op	       0 allocs/op
+BenchmarkTwigGplusAPI-2    	  300000	      5613 ns/op	      57 B/op	       0 allocs/op
+BenchmarkTwigParseAPI-2    	  200000	     10660 ns/op	     173 B/op	       0 allocs/op
+BenchmarkEchoStatic-2      	   20000	     63527 ns/op	    2126 B/op	     157 allocs/op
+BenchmarkEchoGitHubAPI-2   	   20000	     91821 ns/op	    2496 B/op	     203 allocs/op
+BenchmarkEchoGplusAPI-2    	  300000	      5072 ns/op	     161 B/op	      13 allocs/op
+BenchmarkEchoParseAPI-2    	  200000	      9195 ns/op	     381 B/op	      26 allocs/op
+BenchmarkGinStatic-2       	   20000	     75786 ns/op	    8405 B/op	     157 allocs/op
+BenchmarkGinGitHubAPI-2    	   10000	    103458 ns/op	   10619 B/op	     203 allocs/op
+BenchmarkGinGplusAPI-2     	  200000	      6049 ns/op	     710 B/op	      13 allocs/op
+BenchmarkGinParseAPI-2     	  200000	     11559 ns/op	    1421 B/op	      26 allocs/op
+BenchmarkDotwebStatic-2    	    5000	    417102 ns/op	  100022 B/op	    2837 allocs/op
+PASS
+ok  	web	24.538s
+```
+
 ## 安装
 
 go get github.com/twiglab/twig
@@ -24,6 +47,7 @@ import (
 
 func main() {
 	web := twig.TODO()
+	web.AddServer(twig.NewServer(":4321")) // twig支持多server
 
 	web.Config().
 		Get("/hello", func(c twig.Ctx) error {
