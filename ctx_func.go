@@ -1,25 +1,26 @@
 package twig
 
 import (
+	"net/http"
 	"reflect"
 	"unsafe"
 )
 
-func WriteContentType(c Ctx, value string) {
-	header := c.Resp().Header()
+func WriteContentType(w http.ResponseWriter, val string) {
+	header := w.Header()
 	if header.Get(HeaderContentType) == "" {
-		header.Set(HeaderContentType, value)
+		header.Set(HeaderContentType, val)
 	}
 }
 
-func IsTLS(c Ctx) bool {
-	return c.Req().TLS != nil
+func IsTLS(r *http.Request) bool {
+	return r.TLS != nil
 }
 
-func Byte(c Ctx, code int, contentType string, bs []byte) (err error) {
-	WriteContentType(c, contentType)
-	c.Resp().WriteHeader(code)
-	_, err = c.Resp().Write(bs)
+func Byte(w http.ResponseWriter, code int, contentType string, bs []byte) (err error) {
+	WriteContentType(w, contentType)
+	w.WriteHeader(code)
+	_, err = w.Write(bs)
 	return
 }
 
@@ -32,6 +33,10 @@ func UnsafeToBytes(s string) []byte {
 	}))
 }
 
-func UnsafeString(c Ctx, code int, str string) error {
-	return Byte(c, code, MIMETextPlainCharsetUTF8, UnsafeToBytes(str))
+func UnsafeString(w http.ResponseWriter, code int, str string) error {
+	return Byte(w, code, MIMETextPlainCharsetUTF8, UnsafeToBytes(str))
+}
+
+func String(w http.ResponseWriter, code int, str string) error {
+	return Byte(w, code, MIMETextPlainCharsetUTF8, []byte(str))
 }

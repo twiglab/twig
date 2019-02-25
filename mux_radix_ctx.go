@@ -53,7 +53,7 @@ func newRadixTreeCtx(tree *RadixTree) *radixTreeCtx {
 }
 
 func (c *radixTreeCtx) writeContentType(value string) {
-	WriteContentType(c, value)
+	WriteContentType(c.resp, value)
 }
 
 func (c *radixTreeCtx) Resp() *ResponseWrap {
@@ -69,7 +69,7 @@ func (c *radixTreeCtx) SetReq(r *http.Request) {
 }
 
 func (c *radixTreeCtx) IsTls() bool {
-	return IsTLS(c)
+	return IsTLS(c.req)
 }
 
 func (c *radixTreeCtx) IsWebSocket() bool {
@@ -262,7 +262,7 @@ func (c *radixTreeCtx) JSONPBlob(code int, callback string, b []byte) (err error
 }
 
 func (c *radixTreeCtx) Blob(code int, contentType string, bs []byte) (err error) {
-	return Byte(c, code, contentType, bs)
+	return Byte(c.resp, code, contentType, bs)
 }
 
 func (c *radixTreeCtx) HTMLBlob(code int, bs []byte) error {
@@ -299,11 +299,11 @@ func (c *radixTreeCtx) Stream(code int, contentType string, r io.Reader) (err er
 }
 
 func (c *radixTreeCtx) String(code int, str string) error {
-	return UnsafeString(c, code, str)
+	return UnsafeString(c.resp, code, str)
 }
 
 func (c *radixTreeCtx) Stringf(code int, format string, v ...interface{}) error {
-	return UnsafeString(c, code, fmt.Sprintf(format, v...))
+	return UnsafeString(c.resp, code, fmt.Sprintf(format, v...))
 }
 
 func (c *radixTreeCtx) Get(key string) interface{} {
