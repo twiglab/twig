@@ -70,7 +70,11 @@ func (h *tlsServer) Start() (err error) {
 	return
 }
 
-func WrapTLSServer(ln net.Listener, cert, key string) Server {
+func WrapListenerTLS(ln net.Listener) Server {
+	return WrapListenerTLSCert(ln, "", "")
+}
+
+func WrapListenerTLSCert(ln net.Listener, cert, key string) Server {
 	return &tlsServer{
 		twigServer: &twigServer{
 			Server: &http.Server{},
@@ -81,8 +85,8 @@ func WrapTLSServer(ln net.Listener, cert, key string) Server {
 	}
 }
 
-func WrapTLSServerConifg(ln net.Listener, config *tls.Config) Server {
-	return WrapTLSServer(tls.NewListener(ln, config), "", "")
+func WrapListenerTLSConfig(ln net.Listener, config *tls.Config) Server {
+	return WrapListenerTLS(tls.NewListener(ln, config))
 }
 
 type KeepAliveListener struct {
