@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const Version = "v0.8.7"
+const Version = "v0.8.8-dev"
 
 // Identifier 标识符接口
 type Identifier interface {
