@@ -141,6 +141,8 @@ func (c *radixTreeCtx) MultipartForm() (*multipart.Form, error) {
 	return c.req.MultipartForm, err
 }
 
+const indexPage string = "index.html"
+
 func (c *radixTreeCtx) File(file string) (err error) {
 	f, err := os.Open(file)
 	if err != nil {
@@ -150,7 +152,7 @@ func (c *radixTreeCtx) File(file string) (err error) {
 
 	fi, _ := f.Stat()
 	if fi.IsDir() {
-		file = filepath.Join(file, IndexPage)
+		file = filepath.Join(file, indexPage)
 		f, err = os.Open(file)
 		if err != nil {
 			return NotFoundHandler(c)

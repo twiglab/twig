@@ -2,7 +2,6 @@ package twig
 
 import (
 	"context"
-	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
@@ -42,19 +41,6 @@ func (h *httpServer) Start() (err error) {
 	return
 }
 
-func WrapListener(ln net.Listener) Server {
-	return &httpServer{
-		twigServer: &twigServer{
-			Server: &http.Server{},
-			ln:     ln,
-		},
-	}
-}
-
-func NewServer(addr string) Server {
-	return WrapListener(NewKeepAliveListener(addr))
-}
-
 type tlsServer struct {
 	*twigServer
 	cert string
@@ -68,25 +54,6 @@ func (h *tlsServer) Start() (err error) {
 		}
 	}()
 	return
-}
-
-func WrapListenerTLS(ln net.Listener) Server {
-	return WrapListenerTLSCert(ln, "", "")
-}
-
-func WrapListenerTLSCert(ln net.Listener, cert, key string) Server {
-	return &tlsServer{
-		twigServer: &twigServer{
-			Server: &http.Server{},
-			ln:     ln,
-		},
-		cert: cert,
-		key:  key,
-	}
-}
-
-func WrapListenerTLSConfig(ln net.Listener, config *tls.Config) Server {
-	return WrapListenerTLS(tls.NewListener(ln, config))
 }
 
 type KeepAliveListener struct {
@@ -122,4 +89,39 @@ func (l *KeepAliveListener) Accept() (net.Conn, error) {
 	conn.SetKeepAlivePeriod(3 * time.Minute)
 
 	return conn, err
+}
+
+type Lead struct {
+	t     *Twig
+	works []Server
+}
+
+func (l *Lead) Attach(t *Twig) {
+	l.t = t
+}
+
+func (l *Lead) Start() error {
+	for _, s := range l.works {
+		if err := s.Start(); err != nil {
+			l.t.Logger.Println(err)
+		}
+	}
+	return nil
+}
+
+func (l *Lead) Shutdown(ctx context.Context) error {
+	for _, s := range l.works {
+		if err := s.Shutdown(ctx); err != nil {
+			l.t.Logger.Println(err)
+		}
+	}
+
+	return nil
+}
+
+func (l *Lead) AddServer(servers ...Server) {
+	l.works = append(l.works, servers...)
+	for _, s := range l.works {
+		s.Attach(l.t)
+	}
 }
