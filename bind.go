@@ -56,10 +56,8 @@ func (b *defaultBinder) Bind(i interface{}, c Ctx) (err error) {
 				return NewHttpError(http.StatusBadRequest, fmt.Sprintf("Unmarshal type error: expected=%v, got=%v, field=%v, offset=%v", ute.Type, ute.Value, ute.Field, ute.Offset)).SetInternal(err)
 			} else if se, ok := err.(*json.SyntaxError); ok {
 				return NewHttpError(http.StatusBadRequest, fmt.Sprintf("Syntax error: offset=%v, error=%v", se.Offset, se.Error())).SetInternal(err)
-			} else {
-				return NewHttpError(http.StatusBadRequest, err.Error()).SetInternal(err)
 			}
-			return NewHttpError(http.StatusBadRequest, err.Error())
+			return NewHttpError(http.StatusBadRequest, err.Error()).SetInternal(err)
 		}
 	case strings.HasPrefix(ctype, MIMEApplicationXML), strings.HasPrefix(ctype, MIMETextXML):
 		if err = xml.NewDecoder(req.Body).Decode(i); err != nil {
@@ -67,10 +65,8 @@ func (b *defaultBinder) Bind(i interface{}, c Ctx) (err error) {
 				return NewHttpError(http.StatusBadRequest, fmt.Sprintf("Unsupported type error: type=%v, error=%v", ute.Type, ute.Error())).SetInternal(err)
 			} else if se, ok := err.(*xml.SyntaxError); ok {
 				return NewHttpError(http.StatusBadRequest, fmt.Sprintf("Syntax error: line=%v, error=%v", se.Line, se.Error())).SetInternal(err)
-			} else {
-				return NewHttpError(http.StatusBadRequest, err.Error()).SetInternal(err)
 			}
-			return NewHttpError(http.StatusBadRequest, err.Error())
+			return NewHttpError(http.StatusBadRequest, err.Error()).SetInternal(err)
 		}
 	case strings.HasPrefix(ctype, MIMEApplicationForm), strings.HasPrefix(ctype, MIMEMultipartForm):
 		params, err := c.FormParams()
