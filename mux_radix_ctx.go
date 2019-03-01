@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type radixTreeCtx struct {
@@ -26,6 +27,8 @@ type radixTreeCtx struct {
 	pvalues []string
 
 	tree *RadixTree
+
+	lock sync.RWMutex
 }
 
 func newRadixTreeCtx(tree *RadixTree) *radixTreeCtx {
@@ -202,10 +205,15 @@ func (c *radixTreeCtx) Stringf(code int, format string, v ...interface{}) error 
 }
 
 func (c *radixTreeCtx) Get(key string) interface{} {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.store[key]
 }
 
 func (c *radixTreeCtx) Set(key string, val interface{}) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	if c.store == nil {
 		c.store = make(M)
 	}
