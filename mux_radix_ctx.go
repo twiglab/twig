@@ -39,20 +39,12 @@ func newRadixTreeCtx(tree *RadixTree) *radixTreeCtx {
 	return c
 }
 
-func (c *radixTreeCtx) writeContentType(value string) {
-	WriteContentType(c.resp, value)
-}
-
 func (c *radixTreeCtx) Resp() *ResponseWrap {
 	return c.resp
 }
 
 func (c *radixTreeCtx) Req() *http.Request {
 	return c.req
-}
-
-func (c *radixTreeCtx) SetReq(r *http.Request) {
-	c.req = r
 }
 
 func (c *radixTreeCtx) IsTls() bool {
@@ -164,8 +156,8 @@ func (c *radixTreeCtx) JSONP(code int, callback string, val interface{}) (err er
 	if c.twig.Debug {
 		enc.SetIndent("", "\t")
 	}
-	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
-	c.resp.WriteHeader(code)
+	WriteContentType(c.resp, MIMEApplicationJavaScriptCharsetUTF8)
+	WriteHeaderCode(c.resp, code)
 
 	if _, err = buf.WriteString(callback + "("); err != nil {
 		return
@@ -195,8 +187,8 @@ func (c *radixTreeCtx) XML(code int, v interface{}) (err error) {
 }
 
 func (c *radixTreeCtx) Stream(code int, contentType string, r io.Reader) (err error) {
-	c.writeContentType(contentType)
-	c.resp.WriteHeader(code)
+	WriteContentType(c.resp, contentType)
+	WriteHeaderCode(c.resp, code)
 	_, err = c.resp.ReadFrom(r)
 	return
 }

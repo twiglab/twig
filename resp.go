@@ -41,7 +41,7 @@ func (r *ResponseWrap) Write(b []byte) (n int, err error) {
 	if !r.Committed {
 		r.WriteHeader(OK)
 	}
-	_, err = r.Writer.Write(b)
+	n, err = r.Writer.Write(b)
 	return
 }
 
@@ -50,7 +50,15 @@ func (r *ResponseWrap) ReadFrom(src io.Reader) (n int64, e error) {
 		r.WriteHeader(OK)
 	}
 
-	_, e = io.Copy(r.Writer, src)
+	n, e = io.Copy(r.Writer, src)
+	return
+}
+
+func (r *ResponseWrap) WriteString(str string) (n int, err error) {
+	if !r.Committed {
+		r.WriteHeader(OK)
+	}
+	n, err = io.WriteString(r.Writer, str)
 	return
 }
 

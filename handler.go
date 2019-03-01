@@ -31,19 +31,6 @@ func WrapHttpHandler(h http.Handler) HandlerFunc {
 	}
 }
 
-// WrapMiddleware 包装http.Handler为中间件
-func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
-	return func(next HandlerFunc) HandlerFunc {
-		return func(c Ctx) (err error) {
-			m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				c.SetReq(r)
-				err = next(c)
-			})).ServeHTTP(c.Resp(), c.Req())
-			return
-		}
-	}
-}
-
 // Merge 中间件包装器
 func Merge(handler HandlerFunc, m []MiddlewareFunc) HandlerFunc {
 	if m == nil {

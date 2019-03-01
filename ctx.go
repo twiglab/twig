@@ -12,8 +12,6 @@ type Ctx interface {
 	Req() *http.Request
 	Resp() *ResponseWrap
 
-	SetReq(*http.Request)
-
 	// IsTls 当前请求是否为Tls
 	IsTls() bool
 	//IsWebSocket 当前请求是否是WebSocket
