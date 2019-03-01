@@ -58,7 +58,7 @@ var DefaultHttpErrorHandler = func(err error, c Ctx) {
 
 	if !c.Resp().Committed {
 		if c.Req().Method == http.MethodHead {
-			err = c.NoContent(code)
+			err = c.NoContent()
 		} else {
 			err = c.JSON(code, msg)
 		}

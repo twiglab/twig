@@ -51,15 +51,9 @@ type Ctx interface {
 
 	// JSON JSON方式输出
 	JSON(int, interface{}) error
-	JSONBlob(int, []byte) error
 	JSONP(int, string, interface{}) error
-	JSONPBlob(int, string, []byte) error
-
-	HTMLBlob(int, []byte) error
-	HTML(int, string) error
 
 	XML(int, interface{}) error
-	XMLBlob(int, []byte) error
 
 	Blob(int, string, []byte) error
 	Stream(int, string, io.Reader) error
@@ -71,15 +65,13 @@ type Ctx interface {
 	SetCookie(*http.Cookie)
 	Cookies() []*http.Cookie
 
-	NoContent(int) error
+	NoContent() error
 	Error(error)
 	Redirect(int, string) error
 
 	Twig() *Twig
 
 	Logger() Logger
-
-	// Hook(http.Handler)
 }
 
 type MuxerCtx interface {

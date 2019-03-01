@@ -1,6 +1,7 @@
 package twig
 
 import (
+	"net"
 	"net/http"
 	"reflect"
 	"strings"
@@ -14,6 +15,10 @@ func WriteContentType(w http.ResponseWriter, val string) {
 	}
 }
 
+func WriteHeaderCode(w http.ResponseWriter, code int) {
+	w.WriteHeader(code)
+}
+
 func IsTLS(r *http.Request) bool {
 	return r.TLS != nil
 }
@@ -25,6 +30,15 @@ func Byte(w http.ResponseWriter, code int, contentType string, bs []byte) (err e
 	return
 }
 
+/*
+func String(w http.ResponseWriter, code int, str string) (err error) {
+	WriteContentType(w, MIMETextPlainCharsetUTF8)
+	WriteHeaderCode(w, code)
+	_, err = io.WriteString(w, str)
+	return
+}
+*/
+
 func UnsafeToBytes(s string) []byte {
 	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&s))
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
@@ -34,12 +48,11 @@ func UnsafeToBytes(s string) []byte {
 	}))
 }
 
-func UnsafeString(w http.ResponseWriter, code int, str string) error {
-	return Byte(w, code, MIMETextPlainCharsetUTF8, UnsafeToBytes(str))
-}
-
-func String(w http.ResponseWriter, code int, str string) error {
-	return Byte(w, code, MIMETextPlainCharsetUTF8, []byte(str))
+func String(w http.ResponseWriter, code int, str string) (err error) {
+	WriteContentType(w, MIMETextPlainCharsetUTF8)
+	WriteHeaderCode(w, code)
+	_, err = w.Write(UnsafeToBytes(str))
+	return
 }
 
 func IsWebSocket(r *http.Request) bool {
@@ -71,4 +84,15 @@ func Scheme(r *http.Request) string {
 		return scheme
 	}
 	return "http"
+}
+
+func RealIP(r *http.Request) string {
+	if ip := r.Header.Get(HeaderXForwardedFor); ip != "" {
+		return strings.Split(ip, ", ")[0]
+	}
+	if ip := r.Header.Get(HeaderXRealIP); ip != "" {
+		return ip
+	}
+	ra, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ra
 }

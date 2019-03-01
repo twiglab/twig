@@ -7,14 +7,10 @@ import (
 	"net/http"
 )
 
-// RespCallBack ResponseWriter回调函数
-type RespCallBack func(http.ResponseWriter)
-
 // ResponseWrap 包装http.ResponseWrite
 type ResponseWrap struct {
 	Writer    http.ResponseWriter
 	Status    int
-	Len       int64
 	Committed bool
 }
 
@@ -43,22 +39,19 @@ func (r *ResponseWrap) WriteHeader(code int) {
 // 输出时候检查是否设置Header
 func (r *ResponseWrap) Write(b []byte) (n int, err error) {
 	if !r.Committed {
-		r.WriteHeader(http.StatusOK)
+		r.WriteHeader(OK)
 	}
-	n, err = r.Writer.Write(b)
-	r.Len += int64(n)
+	_, err = r.Writer.Write(b)
 	return
 }
 
 func (r *ResponseWrap) ReadFrom(src io.Reader) (n int64, e error) {
 	if !r.Committed {
-		r.WriteHeader(http.StatusOK)
+		r.WriteHeader(OK)
 	}
 
-	n, e = io.Copy(r.Writer, src)
-	r.Len += n
+	_, e = io.Copy(r.Writer, src)
 	return
-
 }
 
 // Hijack Hijack 支持
@@ -68,7 +61,6 @@ func (r *ResponseWrap) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 
 func (r *ResponseWrap) reset(w http.ResponseWriter) {
 	r.Writer = w
-	r.Len = 0
-	r.Status = http.StatusOK
+	r.Status = OK
 	r.Committed = false
 }

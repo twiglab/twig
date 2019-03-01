@@ -88,11 +88,6 @@ func Static(r string) HandlerFunc {
 	}
 }
 
-// HeartBeat 用于监控测试心跳
-var HeartBeat HandlerFunc = func(c Ctx) error {
-	return c.NoContent(http.StatusOK)
-}
-
 // ServerInfo ServerInfo 中间件将Twig#Name()设置 Server 头
 // Debug状态下，返回 x-powerd-by 为Twig#Type()
 func ServerInfo() MiddlewareFunc {
@@ -103,15 +98,6 @@ func ServerInfo() MiddlewareFunc {
 			if c.Twig().Debug {
 				w.Header().Set(HeaderXPoweredBy, c.Twig().Type())
 			}
-			return next(c)
-		}
-	}
-}
-
-// Nop Nop middleware for testing
-func Nop() MiddlewareFunc {
-	return func(next HandlerFunc) HandlerFunc {
-		return func(c Ctx) error {
 			return next(c)
 		}
 	}

@@ -7,21 +7,10 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strings"
 )
-
-/*
-var radixTreeCtxPool sync.Pool
-
-func init() {
-	radixTreeCtxPool.New = newRadixTreeCtx()
-}
-*/
 
 type radixTreeCtx struct {
 	req   *http.Request
@@ -29,8 +18,6 @@ type radixTreeCtx struct {
 	query url.Values
 	store M
 	twig  *Twig
-
-	// -------------
 
 	handler HandlerFunc
 	path    string
@@ -85,14 +72,7 @@ func (c *radixTreeCtx) Scheme() string {
 }
 
 func (c *radixTreeCtx) RealIP() string {
-	if ip := c.req.Header.Get(HeaderXForwardedFor); ip != "" {
-		return strings.Split(ip, ", ")[0]
-	}
-	if ip := c.req.Header.Get(HeaderXRealIP); ip != "" {
-		return ip
-	}
-	ra, _, _ := net.SplitHostPort(c.req.RemoteAddr)
-	return ra
+	return RealIP(c.req)
 }
 
 func (c *radixTreeCtx) QueryParam(name string) string {
@@ -141,29 +121,9 @@ func (c *radixTreeCtx) MultipartForm() (*multipart.Form, error) {
 	return c.req.MultipartForm, err
 }
 
-const indexPage string = "index.html"
-
-func (c *radixTreeCtx) File(file string) (err error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return NotFoundHandler(c)
-	}
-	defer f.Close()
-
-	fi, _ := f.Stat()
-	if fi.IsDir() {
-		file = filepath.Join(file, indexPage)
-		f, err = os.Open(file)
-		if err != nil {
-			return NotFoundHandler(c)
-		}
-		defer f.Close()
-		if fi, err = f.Stat(); err != nil {
-			return
-		}
-	}
-	http.ServeContent(c.Resp(), c.Req(), fi.Name(), fi.ModTime(), f)
-	return
+func (c *radixTreeCtx) File(file string) error {
+	http.ServeFile(c.resp, c.req, file)
+	return nil
 }
 
 func (c *radixTreeCtx) Attachment(file, name string) error {
@@ -184,7 +144,7 @@ func (c *radixTreeCtx) Cookie(name string) (*http.Cookie, error) {
 }
 
 func (c *radixTreeCtx) SetCookie(cookie *http.Cookie) {
-	http.SetCookie(c.Resp(), cookie)
+	http.SetCookie(c.resp, cookie)
 }
 
 func (c *radixTreeCtx) Cookies() []*http.Cookie {
@@ -193,17 +153,9 @@ func (c *radixTreeCtx) Cookies() []*http.Cookie {
 
 func (c *radixTreeCtx) JSON(code int, val interface{}) error {
 	enc := json.NewEncoder(c.resp)
-	if c.twig.Debug {
-		enc.SetIndent("", "\t")
-	}
-
-	c.writeContentType(MIMEApplicationJSONCharsetUTF8)
-	c.resp.WriteHeader(code)
+	WriteContentType(c.resp, MIMEApplicationJSONCharsetUTF8)
+	WriteHeaderCode(c.resp, code)
 	return enc.Encode(val)
-}
-
-func (c *radixTreeCtx) JSONBlob(code int, bs []byte) error {
-	return c.Blob(code, MIMEApplicationJSONCharsetUTF8, bs)
 }
 
 func (c *radixTreeCtx) JSONP(code int, callback string, val interface{}) (err error) {
@@ -231,47 +183,15 @@ func (c *radixTreeCtx) JSONP(code int, callback string, val interface{}) (err er
 	return
 }
 
-func (c *radixTreeCtx) JSONPBlob(code int, callback string, b []byte) (err error) {
-	c.writeContentType(MIMEApplicationJavaScriptCharsetUTF8)
-	c.resp.WriteHeader(code)
-	if _, err = c.resp.Write([]byte(callback + "(")); err != nil {
-		return
-	}
-	if _, err = c.resp.Write(b); err != nil {
-		return
-	}
-	_, err = c.resp.Write([]byte(");"))
-	return
-}
-
 func (c *radixTreeCtx) Blob(code int, contentType string, bs []byte) (err error) {
 	return Byte(c.resp, code, contentType, bs)
 }
 
-func (c *radixTreeCtx) HTMLBlob(code int, bs []byte) error {
-	return c.Blob(code, MIMETextHTMLCharsetUTF8, bs)
-}
-
-func (c *radixTreeCtx) HTML(code int, html string) error {
-	return c.HTMLBlob(code, []byte(html))
-}
-
-func (c *radixTreeCtx) XML(code int, i interface{}) (err error) {
-	b, err := xml.Marshal(i)
-	if err != nil {
-		return
-	}
-	return c.XMLBlob(code, b)
-}
-
-func (c *radixTreeCtx) XMLBlob(code int, b []byte) (err error) {
-	c.writeContentType(MIMEApplicationXMLCharsetUTF8)
-	c.resp.WriteHeader(code)
-	if _, err = c.resp.Write([]byte(xml.Header)); err != nil {
-		return
-	}
-	_, err = c.resp.Write(b)
-	return
+func (c *radixTreeCtx) XML(code int, v interface{}) (err error) {
+	enc := xml.NewEncoder(c.resp)
+	WriteContentType(c.resp, MIMEApplicationXMLCharsetUTF8)
+	WriteHeaderCode(c.resp, code)
+	return enc.Encode(v)
 }
 
 func (c *radixTreeCtx) Stream(code int, contentType string, r io.Reader) (err error) {
@@ -282,11 +202,11 @@ func (c *radixTreeCtx) Stream(code int, contentType string, r io.Reader) (err er
 }
 
 func (c *radixTreeCtx) String(code int, str string) error {
-	return UnsafeString(c.resp, code, str)
+	return String(c.resp, code, str)
 }
 
 func (c *radixTreeCtx) Stringf(code int, format string, v ...interface{}) error {
-	return UnsafeString(c.resp, code, fmt.Sprintf(format, v...))
+	return String(c.resp, code, fmt.Sprintf(format, v...))
 }
 
 func (c *radixTreeCtx) Get(key string) interface{} {
@@ -300,8 +220,8 @@ func (c *radixTreeCtx) Set(key string, val interface{}) {
 	c.store[key] = val
 }
 
-func (c *radixTreeCtx) NoContent(code int) error {
-	c.resp.WriteHeader(code)
+func (c *radixTreeCtx) NoContent() error {
+	WriteHeaderCode(c.resp, http.StatusNoContent)
 	return nil
 }
 
