@@ -96,7 +96,7 @@ func (t *Twig) AddServer(s ...Server) {
 
 func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Config {
 	t.muxes.AddMuxer(mux, match)
-	return NewConfig(mux)
+	return newConfig(mux, t)
 }
 
 func (t *Twig) EnableDebug() {
@@ -122,9 +122,8 @@ func (t *Twig) UsePlugger(plugins ...Plugger) {
 }
 
 // Plugin 获取Plugin
-func (t *Twig) GetPlugger(id string) (p Plugger, ok bool) {
-	p, ok = t.plugins[id]
-	return
+func (t *Twig) GetPlugger(id string) Plugger {
+	return t.plugins[id]
 }
 
 // ServeHTTP 实现`http.Handler`接口
@@ -222,5 +221,5 @@ func (t *Twig) SetType(typ string) {
 
 // Config Configer#Config
 func (t *Twig) Config() *Config {
-	return NewConfig(t.muxes.def)
+	return newConfig(t.muxes.def, t)
 }

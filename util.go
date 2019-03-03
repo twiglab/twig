@@ -4,20 +4,23 @@ import (
 	"net/http"
 )
 
-// M 全局通用的map
-type M map[string]interface{}
+type PluginProvider interface {
+	UsePlugger(...Plugger)
+	GetPlugger(string) Plugger
+}
+
+type ExRegister interface {
+	Register
+	PluginProvider
+}
 
 // Mouter 接口用于模块化设置路由
 type Mounter interface {
-	Mount(Register)
+	Mount(ExRegister)
 }
 
-// MountFunc Mount函数用于简化配置
-type MountFunc func(Register)
-
-func (m MountFunc) Mount(r Register) {
-	m(r)
-}
+// M 全局通用的map
+type M map[string]interface{}
 
 // 获取当前请求路径
 func GetReqPath(r *http.Request) string {
@@ -39,32 +42,34 @@ func Attach(i interface{}, t *Twig) {
 
 // Config Twig路由配置工具
 type Config struct {
-	Register Register
-	namer    Namer
+	r Register
+	p PluginProvider
+	n Namer
 }
 
-// NewConfig 创建Config
-func NewConfig(r Register) *Config {
+func newConfig(r Register, t *Twig) *Config {
 	return &Config{
-		Register: r,
+		r: r,
+		p: t,
+		n: t,
 	}
 }
 
 // SetName 设置当前Namer的名称
 func (c *Config) SetName(name string) *Config {
-	c.namer.SetName(name)
+	c.n.SetName(name)
 	return c
 }
 
 // Use 当前Register增加中间件
 func (c *Config) Use(m ...MiddlewareFunc) *Config {
-	c.Register.Use(m...)
+	c.Use(m...)
 	return c
 }
 
 // AddHandler 增加Handler
 func (c *Config) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
-	c.namer = c.Register.AddHandler(method, path, handler, m...)
+	c.n = c.r.AddHandler(method, path, handler, m...)
 	return c
 }
 
@@ -102,8 +107,16 @@ func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *C
 
 // Mount 挂载Mounter到当前Register
 func (c *Config) Mount(mount Mounter) *Config {
-	mount.Mount(c.Register)
-	c.namer = nil
+	mount.Mount(
+		&struct {
+			Register
+			PluginProvider
+		}{
+			c.r,
+			c.p,
+		},
+	)
+	c.n = nil
 	return c
 }
 
@@ -112,11 +125,13 @@ func (c *Config) Static(path, file string, m ...MiddlewareFunc) *Config {
 	return c.Get(path, Static(file), m...)
 }
 
+/*
 // Group 配置路由组
 func (c *Config) Group(path string, m MountFunc) *Config {
 	m(NewGroup(c.Register, path))
 	return c
 }
+*/
 
 // Group 提供理由分组支持
 type Group struct {
@@ -145,8 +160,4 @@ func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFu
 	route.SetName(name)
 
 	return route
-}
-
-func (g *Group) Config() *Config {
-	return NewConfig(g)
 }

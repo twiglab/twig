@@ -13,38 +13,29 @@ type Plugger interface {
 	ID() string
 }
 
-// GetPlugin 从当前Ctx中获取Plugin
-func GetPlugger(id string, c Ctx) (p Plugger, ok bool) {
+// GetPlugger 从当前Ctx中获取Plugger
+func GetPlugger(id string, c Ctx) Plugger {
 	t := c.Twig()
-	p, ok = t.GetPlugger(id)
-	return
+	return t.GetPlugger(id)
 }
 
 // Binder 数据绑定接口
-// Binder 作为一个插件集成到Twig中,请实现Plugin接口
+// Binder 作为一个插件集成到Twig中,请实现Plugger接口
 type Binder interface {
 	Bind(interface{}, Ctx) error
 }
 
 // GetBinder 获取绑定接口
-func GetBinder(id string, c Ctx) (binder Binder, ok bool) {
-	var plugger Plugger
-	if plugger, ok = GetPlugger(id, c); ok {
-		binder, ok = plugger.(Binder)
-	}
-	return
+func GetBinder(id string, c Ctx) Binder {
+	return GetPlugger(id, c).(Binder)
 }
 
 type Renderer interface {
 	Render(io.Writer, string, interface{}, Ctx) error
 }
 
-func GetRenderer(id string, c Ctx) (r Renderer, ok bool) {
-	var plugger Plugger
-	if plugger, ok = GetPlugger(id, c); ok {
-		r, ok = plugger.(Renderer)
-	}
-	return
+func GetRenderer(id string, c Ctx) Renderer {
+	return GetPlugger(id, c).(Renderer)
 }
 
 // IdGenerator ID发生器接口
@@ -52,12 +43,9 @@ type IdGenerator interface {
 	NextID() string
 }
 
-func GetIdGenerator(id string, c Ctx) (gen IdGenerator, ok bool) {
-	var plugger Plugger
-	if plugger, ok = GetPlugger(id, c); ok {
-		gen, ok = plugger.(IdGenerator)
-	}
-	return
+func GetIdGenerator(id string, c Ctx) IdGenerator {
+	plugger := GetPlugger(id, c)
+	return plugger.(IdGenerator)
 }
 
 const uuidPluginID = "_twig_uuid_plugin_id_"
@@ -74,6 +62,6 @@ func (id uuidGen) NextID() string {
 }
 
 func GenID(c Ctx) string {
-	idgen, _ := GetIdGenerator(uuidPluginID, c)
+	idgen := GetIdGenerator(uuidPluginID, c)
 	return idgen.NextID()
 }

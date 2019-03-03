@@ -283,6 +283,6 @@ func setFloatField(value string, bitSize int, field reflect.Value) error {
 
 // Bind 绑定ctx到变量
 func Bind(i interface{}, c Ctx) error {
-	binder, _ := GetBinder(defBinderID, c)
+	binder := GetBinder(defBinderID, c)
 	return binder.Bind(i, c)
 }
