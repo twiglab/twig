@@ -21,7 +21,6 @@ BenchmarkGinStatic-2       	   20000	     75786 ns/op	    8405 B/op	     157 all
 BenchmarkGinGitHubAPI-2    	   10000	    103458 ns/op	   10619 B/op	     203 allocs/op
 BenchmarkGinGplusAPI-2     	  200000	      6049 ns/op	     710 B/op	      13 allocs/op
 BenchmarkGinParseAPI-2     	  200000	     11559 ns/op	    1421 B/op	      26 allocs/op
-BenchmarkDotwebStatic-2    	    5000	    417102 ns/op	  100022 B/op	    2837 allocs/op
 PASS
 ok  	web	24.538s
 ```
