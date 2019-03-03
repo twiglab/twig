@@ -30,7 +30,7 @@ func Byte(w http.ResponseWriter, code int, contentType string, bs []byte) (err e
 	return
 }
 
-func UnsafeToBytes(s string) []byte {
+func unsafeToBytes(s string) []byte {
 	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&s))
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: strHeader.Data,
@@ -42,7 +42,7 @@ func UnsafeToBytes(s string) []byte {
 func String(w http.ResponseWriter, code int, str string) (err error) {
 	WriteContentType(w, MIMETextPlainCharsetUTF8)
 	WriteHeaderCode(w, code)
-	_, err = w.Write(UnsafeToBytes(str))
+	_, err = w.Write(unsafeToBytes(str))
 	return
 }
 

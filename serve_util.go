@@ -19,11 +19,6 @@ func NewServer(addr string) Server {
 	return NewServerListener(NewKeepAliveListener(addr))
 }
 
-func NewServerTLS(addr, cert, key string) Server {
-	ln := NewKeepAliveListener(addr)
-	return NewServerListenerTLS(ln, cert, key)
-}
-
 func NewServerListenerTLS(ln net.Listener, cert, key string) Server {
 	return &tlsServer{
 		twigServer: &twigServer{
@@ -33,6 +28,11 @@ func NewServerListenerTLS(ln net.Listener, cert, key string) Server {
 		cert: cert,
 		key:  key,
 	}
+}
+
+func NewServerTLS(addr, cert, key string) Server {
+	ln := NewKeepAliveListener(addr)
+	return NewServerListenerTLS(ln, cert, key)
 }
 
 func NewServerConfigTLS(ln net.Listener, config *tls.Config) Server {
