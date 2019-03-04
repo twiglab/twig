@@ -19,6 +19,14 @@ type Mounter interface {
 	Mount(ExRegister)
 }
 
+/*
+type MountFunc func(ExRegister)
+
+func (m MountFunc) Mount(r ExRegister) {
+	m(r)
+}
+*/
+
 // M 全局通用的map
 type M map[string]interface{}
 
@@ -125,13 +133,12 @@ func (c *Config) Static(path, file string, m ...MiddlewareFunc) *Config {
 	return c.Get(path, Static(file), m...)
 }
 
-/*
 // Group 配置路由组
-func (c *Config) Group(path string, m MountFunc) *Config {
-	m(NewGroup(c.Register, path))
+// 存在缺陷，Group不支持Plugin(TODO)
+func (c *Config) Group(path string, f func(Register)) *Config {
+	f(NewGroup(c.r, path))
 	return c
 }
-*/
 
 // Group 提供理由分组支持
 type Group struct {
