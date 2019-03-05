@@ -134,7 +134,7 @@ func CORSWithConfig(config CORSConfig) twig.MiddlewareFunc {
 			if config.MaxAge > 0 {
 				res.Header().Set(twig.HeaderAccessControlMaxAge, maxAge)
 			}
-			return c.NoContent(http.StatusNoContent)
+			return c.NoContent()
 		}
 	}
 }

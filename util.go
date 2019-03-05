@@ -52,19 +52,26 @@ func (t *target) Use(m ...MiddlewareFunc) {
 	t.Register.Use(m...)
 }
 
+func NewExRegister(r Register, twig *Twig) ExRegister {
+	return &target{
+		Register: r,
+		Twig:     twig,
+	}
+}
+
 // Config Twig路由配置工具
 type Config struct {
-	r *target
+	r ExRegister
 	n Namer
 }
 
-func NewConfig(r Register, twig *Twig) *Config {
+func NewConfig(r Register) *Config {
+	return NewConfigEx(NewExRegister(r, nil))
+}
+
+func NewConfigEx(r ExRegister) *Config {
 	return &Config{
-		r: &target{
-			Register: r,
-			Twig:     twig,
-		},
-		n: twig,
+		r: r,
 	}
 }
 
@@ -92,9 +99,6 @@ func (c *Config) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Con
 
 func (c *Config) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(POST, path, handler, m...)
-}
-
-func (c *Config) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
 	return c.AddHandler(DELETE, path, handler, m...)
 }
 
