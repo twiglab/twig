@@ -96,7 +96,7 @@ func (t *Twig) AddServer(s ...Server) {
 
 func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Config {
 	t.muxes.AddMuxer(mux, match)
-	return newConfig(mux, t)
+	return NewConfig(mux, t)
 }
 
 func (t *Twig) EnableDebug() {
@@ -221,5 +221,5 @@ func (t *Twig) SetType(typ string) {
 
 // Config Configer#Config
 func (t *Twig) Config() *Config {
-	return newConfig(t.muxes.def, t)
+	return NewConfig(t.muxes.def, t)
 }

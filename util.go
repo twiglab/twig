@@ -4,14 +4,10 @@ import (
 	"net/http"
 )
 
-type PluginProvider interface {
-	UsePlugger(...Plugger)
-	GetPlugger(string) Plugger
-}
-
 type ExRegister interface {
 	Register
-	PluginProvider
+	UsePlugger(...Plugger)
+	GetPlugger(string) Plugger
 }
 
 // Mouter 接口用于模块化设置路由
@@ -19,13 +15,11 @@ type Mounter interface {
 	Mount(ExRegister)
 }
 
-/*
 type MountFunc func(ExRegister)
 
 func (m MountFunc) Mount(r ExRegister) {
 	m(r)
 }
-*/
 
 // M 全局通用的map
 type M map[string]interface{}
@@ -48,18 +42,29 @@ func Attach(i interface{}, t *Twig) {
 	}
 }
 
+type target struct {
+	Register
+	*Twig
+}
+
+// Use 消除冲突
+func (t *target) Use(m ...MiddlewareFunc) {
+	t.Register.Use(m...)
+}
+
 // Config Twig路由配置工具
 type Config struct {
-	r Register
-	p PluginProvider
+	r *target
 	n Namer
 }
 
-func newConfig(r Register, t *Twig) *Config {
+func NewConfig(r Register, twig *Twig) *Config {
 	return &Config{
-		r: r,
-		p: t,
-		n: t,
+		r: &target{
+			Register: r,
+			Twig:     twig,
+		},
+		n: twig,
 	}
 }
 
@@ -115,15 +120,7 @@ func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *C
 
 // Mount 挂载Mounter到当前Register
 func (c *Config) Mount(mount Mounter) *Config {
-	mount.Mount(
-		&struct {
-			Register
-			PluginProvider
-		}{
-			c.r,
-			c.p,
-		},
-	)
+	mount.Mount(c.r)
 	c.n = nil
 	return c
 }
@@ -134,8 +131,7 @@ func (c *Config) Static(path, file string, m ...MiddlewareFunc) *Config {
 }
 
 // Group 配置路由组
-// 存在缺陷，Group不支持Plugin(TODO)
-func (c *Config) Group(path string, f func(Register)) *Config {
+func (c *Config) Group(path string, f MountFunc) *Config {
 	f(NewGroup(c.r, path))
 	return c
 }
@@ -144,13 +140,13 @@ func (c *Config) Group(path string, f func(Register)) *Config {
 type Group struct {
 	prefix string
 	m      []MiddlewareFunc
-	reg    Register
+	ExRegister
 }
 
-func NewGroup(r Register, prefix string) *Group {
+func NewGroup(r ExRegister, prefix string) *Group {
 	return &Group{
-		prefix: prefix,
-		reg:    r,
+		prefix:     prefix,
+		ExRegister: r,
 	}
 }
 
@@ -162,7 +158,7 @@ func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFu
 	name := HandlerName(h)
 	handler := Merge(h, g.m)
 
-	route := g.reg.AddHandler(method, g.prefix+path, handler, m...)
+	route := g.ExRegister.AddHandler(method, g.prefix+path, handler, m...)
 
 	route.SetName(name)
 
