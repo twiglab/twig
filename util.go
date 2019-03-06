@@ -66,7 +66,11 @@ type Config struct {
 }
 
 func NewConfig(r Register) *Config {
-	return NewConfigEx(NewExRegister(r, nil))
+	return TwigConfig(r, nil)
+}
+
+func TwigConfig(r Register, twig *Twig) *Config {
+	return NewConfigEx(NewExRegister(r, twig))
 }
 
 func NewConfigEx(r ExRegister) *Config {
@@ -122,7 +126,7 @@ func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *C
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
-// Mount 挂载Mounter到当前Register
+// Mount 挂载Mounter到当前ExRegister
 func (c *Config) Mount(mount Mounter) *Config {
 	mount.Mount(c.r)
 	c.n = nil
@@ -140,6 +144,15 @@ func (c *Config) Group(path string, f MountFunc) *Config {
 	return c
 }
 
+/*
+	web.Config().
+		Group("/api", func(r twig.ExRegister) {
+			twig.NewConfigEx(r).
+				Post("/addUser", func(c twig.Ctx) error {
+					...
+				})
+		})
+*/
 // Group 提供理由分组支持
 type Group struct {
 	prefix string
