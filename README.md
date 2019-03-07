@@ -59,8 +59,8 @@ func main() {
 }
 ```
 
-- Twig的默认监听端口是4321, 可以通过twig.DefaultAddress全局变量修改(`位于var.go中`)，或者自定义自己的Server
-- 使用twig.TODO()创建`默认的`Twig，默认的Twig包括默认的HttpServer（Work）,默认的路由实现（RadixTree)，默认的Logger和默认的HttpErrorHandler
+- Twig的默认监听端口是4321, 或者自定义自己的Server
+- 使用twig.TODO()创建`默认的`Twig，默认的Twig包括，默认的路由实现（RadixTree)，默认的Logger和默认的HttpErrorHandler
 - twig.Config是Twig提供的配置工具（注意：在Twig的世界里，工具的定义为附属品，并不是Twig必须的一部分），Twig没有像别的webserver一样提供GET，POST等方法，所有的配置工作都通过Config完成
 - Twig要求所有的Server的实现必须是*非堵塞*的，Start方法将启动Twig，Twig提供了Signal组件用于堵塞应用，处理系统信号，完成和shell的交互
 
