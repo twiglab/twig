@@ -4,10 +4,17 @@ import (
 	"net/http"
 )
 
+/*
+// 组装器
+type Assembler struct{
+	Register
+	PluginHelper
+}
+*/
+
 type ExRegister interface {
 	Register
-	UsePlugger(...Plugger)
-	GetPlugger(string) Plugger
+	PluginHelper
 }
 
 // Mouter 接口用于模块化设置路由

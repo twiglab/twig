@@ -160,10 +160,13 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// ------------------------------------------------------------
 
-	if err := h(c); err != nil { // 链式调用，如果出错，交给Twig的HttpErrorHandler处理
+	if err := h(c); err != nil {
+		// 链式调用，如果出错，交给Twig的HttpErrorHandler处理
+		// 默认情况下由全局ErrorHandler处理， 后续有各自的路由处理ErrorHandler
 		t.HttpErrorHandler(err, c)
 	}
 
+	// 释放Ctx， Ctx的释放由创建者完成
 	c.Release()
 }
 

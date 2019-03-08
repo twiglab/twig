@@ -13,6 +13,11 @@ type Plugger interface {
 	ID() string
 }
 
+type PluginHelper interface {
+	UsePlugger(...Plugger)
+	GetPlugger(string) Plugger
+}
+
 // GetPlugger 从当前Ctx中获取Plugger
 func GetPlugger(id string, c Ctx) Plugger {
 	t := c.Twig()
