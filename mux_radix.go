@@ -38,8 +38,6 @@ type node struct {
 	ppath         string
 	pnames        []string
 	methodHandler *methodHandler
-
-	count uint64
 }
 
 func newNode(t kind, pre string, p *node, c children, mh *methodHandler, ppath string, pnames []string) *node {
@@ -52,8 +50,6 @@ func newNode(t kind, pre string, p *node, c children, mh *methodHandler, ppath s
 		ppath:         ppath,
 		pnames:        pnames,
 		methodHandler: mh,
-
-		count: 0,
 	}
 }
 
