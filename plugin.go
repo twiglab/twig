@@ -10,7 +10,7 @@ import (
 // 如果插件需要生命周期管理，请实现Cycler接口
 // 如果插件需要访问Twig本身，请实现Attacher接口
 type Plugger interface {
-	ID() string
+	Identifier
 }
 
 type PluginHelper interface {

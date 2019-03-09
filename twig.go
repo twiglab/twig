@@ -12,8 +12,6 @@ type M map[string]interface{}
 // Identifier 标识符接口
 type Identifier interface {
 	ID() string
-	Name() string
-	Type() string
 }
 
 // Attacher 用于设置Twig和组件之间的联系
@@ -32,11 +30,6 @@ func Attach(i interface{}, t *Twig) {
 type Cycler interface {
 	Start() error
 	Shutdown(context.Context) error
-}
-
-// Namer 命名接口
-type Namer interface {
-	SetName(string)
 }
 
 // Twig

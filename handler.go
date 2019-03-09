@@ -5,8 +5,6 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
-	"reflect"
-	"runtime"
 )
 
 // HandlerFunc Twig的Handler方法
@@ -51,15 +49,6 @@ var NotFoundHandler = func(c Ctx) error {
 // MethodNotAllowedHandler 全局405处理方法
 var MethodNotAllowedHandler = func(c Ctx) error {
 	return ErrMethodNotAllowed
-}
-
-// 获取handler的名称
-func HandlerName(h HandlerFunc) string {
-	t := reflect.ValueOf(h).Type()
-	if t.Kind() == reflect.Func {
-		return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
-	}
-	return t.String()
 }
 
 // Static 处理静态文件的HandlerFunc
