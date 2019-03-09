@@ -1,9 +1,5 @@
 package twig
 
-import (
-	"net/http"
-)
-
 // 组装器
 type Assembler interface {
 	Register
@@ -12,18 +8,13 @@ type Assembler interface {
 
 type target struct {
 	Register
-	*Twig
-}
-
-// Use 消除冲突
-func (t *target) Use(m ...MiddlewareFunc) {
-	t.Register.Use(m...)
+	PluginHelper
 }
 
 func newTarget(r Register, twig *Twig) Assembler {
 	return &target{
-		Register: r,
-		Twig:     twig,
+		Register:     r,
+		PluginHelper: twig,
 	}
 }
 
@@ -36,27 +27,6 @@ type MountFunc func(Assembler)
 
 func (m MountFunc) Mount(target Assembler) {
 	m(target)
-}
-
-// M 全局通用的map
-type M map[string]interface{}
-
-// 获取当前请求路径
-func GetReqPath(r *http.Request) string {
-	path := r.URL.RawPath
-
-	if path == "" {
-		path = r.URL.Path
-	}
-
-	return path
-}
-
-// Attach 设置关联关系
-func Attach(i interface{}, t *Twig) {
-	if attacher, ok := i.(Attacher); ok {
-		attacher.Attach(t)
-	}
 }
 
 // Conf Twig路由配置工具

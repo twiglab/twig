@@ -14,24 +14,17 @@ func (f MatcherFunc) Match(req *http.Request) bool {
 	return f(req)
 }
 
-type MatchedMux struct {
+type matchedMux struct {
 	Muxer
 	Matcher
 }
 
-func NewMatchedMux(m Muxer, f MatcherFunc) *MatchedMux {
-	return &MatchedMux{
-		Muxer:   m,
-		Matcher: f,
-	}
-}
-
-type Muxes struct {
-	ms  []*MatchedMux
+type muxes struct {
+	ms  []*matchedMux
 	def Muxer
 }
 
-func (m *Muxes) Lookup(method string, path string, req *http.Request) MuxerCtx {
+func (m *muxes) Lookup(method string, path string, req *http.Request) MuxerCtx {
 	for _, mux := range m.ms {
 		if mux.Match(req) {
 			return mux.Lookup(method, path, req)
@@ -41,15 +34,18 @@ func (m *Muxes) Lookup(method string, path string, req *http.Request) MuxerCtx {
 	return m.def.Lookup(method, path, req)
 }
 
-func (m *Muxes) AddHandler(method string, path string, h HandlerFunc, ms ...MiddlewareFunc) Router {
+func (m *muxes) AddHandler(method string, path string, h HandlerFunc, ms ...MiddlewareFunc) Router {
 	return m.def.AddHandler(method, path, h, ms...)
 }
 
-func (m *Muxes) Use(ms ...MiddlewareFunc) {
+func (m *muxes) Use(ms ...MiddlewareFunc) {
 	m.def.Use(ms...)
 }
 
-func (m *Muxes) AddMuxer(mux Muxer, f MatcherFunc) {
-	mf := NewMatchedMux(mux, f)
+func (m *muxes) AddMuxer(mux Muxer, match Matcher) {
+	mf := &matchedMux{
+		Muxer:   m,
+		Matcher: match,
+	}
 	m.ms = append(m.ms, mf)
 }

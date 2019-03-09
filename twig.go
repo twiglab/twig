@@ -6,6 +6,9 @@ import (
 	"os"
 )
 
+// M 全局通用的map
+type M map[string]interface{}
+
 // Identifier 标识符接口
 type Identifier interface {
 	ID() string
@@ -16,6 +19,13 @@ type Identifier interface {
 // Attacher 用于设置Twig和组件之间的联系
 type Attacher interface {
 	Attach(*Twig)
+}
+
+// Attach 设置关联关系
+func Attach(i interface{}, t *Twig) {
+	if attacher, ok := i.(Attacher); ok {
+		attacher.Attach(t)
+	}
 }
 
 // Cycler 设置周期管理
@@ -36,7 +46,7 @@ type Twig struct {
 
 	Logger Logger // Logger 组件负责日志输出
 	lead   *Lead  // Server 组
-	muxes  *Muxes // 路由器
+	muxes  *muxes // 路由器
 
 	Debug bool
 
@@ -79,7 +89,7 @@ func TODO() *Twig {
 		t: t,
 	}
 
-	t.muxes = &Muxes{
+	t.muxes = &muxes{
 		def: NewRadixTree(),
 	}
 
@@ -94,9 +104,14 @@ func (t *Twig) AddServer(s ...Server) {
 	t.lead.AddServer(s...)
 }
 
-func (t *Twig) AddMuxer(mux Muxer, match MatcherFunc) *Conf {
+// AddMuxer 增加Muxer， match 决定这个muxer在何种情况使用
+func (t *Twig) AddMuxer(mux Muxer, match Matcher) *Conf {
 	t.muxes.AddMuxer(mux, match)
 	return TwigConfig(mux, t)
+}
+
+func (t *Twig) AddMuxerMatcherFunc(mux Muxer, match MatcherFunc) *Conf {
+	return t.AddMuxer(mux, match)
 }
 
 func (t *Twig) EnableDebug() {
@@ -173,7 +188,6 @@ func (t *Twig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Start Cycler#Start
 func (t *Twig) Start() error {
 	t.Logger.Printf("Twig@%s(id = %s ver = %s)\n", t.Name(), t.ID(), Version)
-
 	for _, p := range t.plugins {
 		if cycler, ok := p.(Cycler); ok {
 			if err := cycler.Start(); err != nil {
@@ -181,7 +195,6 @@ func (t *Twig) Start() error {
 			}
 		}
 	}
-
 	return t.lead.Start()
 }
 
@@ -222,7 +235,7 @@ func (t *Twig) SetType(typ string) {
 	t.typ = typ
 }
 
-// Config Configer#Config
+// Config 默认配置
 func (t *Twig) Config() *Conf {
-	return TwigConfig(t.muxes.def, t)
+	return TwigConfig(t.muxes, t)
 }

@@ -67,3 +67,14 @@ func (r *NamedRoute) SetName(name string) {
 func (r *NamedRoute) Type() string {
 	return "handler"
 }
+
+// 获取当前请求路径
+func GetReqPath(r *http.Request) string {
+	path := r.URL.RawPath
+
+	if path == "" {
+		path = r.URL.Path
+	}
+
+	return path
+}
