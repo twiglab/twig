@@ -91,37 +91,37 @@ func (l *KeepAliveListener) Accept() (net.Conn, error) {
 	return conn, err
 }
 
-type Lead struct {
-	t     *Twig
+type lead struct {
+	twig  *Twig
 	works []Server
 }
 
-func (l *Lead) Attach(t *Twig) {
-	l.t = t
+func (l *lead) Attach(t *Twig) {
+	l.twig = t
 }
 
-func (l *Lead) Start() error {
+func (l *lead) Start() error {
 	for _, s := range l.works {
 		if err := s.Start(); err != nil {
-			l.t.Logger.Println(err)
+			l.twig.Logger.Println(err)
 		}
 	}
 	return nil
 }
 
-func (l *Lead) Shutdown(ctx context.Context) error {
+func (l *lead) Shutdown(ctx context.Context) error {
 	for _, s := range l.works {
 		if err := s.Shutdown(ctx); err != nil {
-			l.t.Logger.Println(err)
+			l.twig.Logger.Println(err)
 		}
 	}
 
 	return nil
 }
 
-func (l *Lead) AddServer(servers ...Server) {
+func (l *lead) AddServer(servers ...Server) {
 	l.works = append(l.works, servers...)
 	for _, s := range l.works {
-		s.Attach(l.t)
+		s.Attach(l.twig)
 	}
 }

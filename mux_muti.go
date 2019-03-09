@@ -20,8 +20,9 @@ type matchedMux struct {
 }
 
 type muxes struct {
-	ms  []*matchedMux
-	def Muxer
+	ms   []*matchedMux
+	def  Muxer
+	twig *Twig
 }
 
 func (m *muxes) Lookup(method string, path string, req *http.Request) MuxerCtx {
@@ -34,8 +35,8 @@ func (m *muxes) Lookup(method string, path string, req *http.Request) MuxerCtx {
 	return m.def.Lookup(method, path, req)
 }
 
-func (m *muxes) AddHandler(method string, path string, h HandlerFunc, ms ...MiddlewareFunc) Router {
-	return m.def.AddHandler(method, path, h, ms...)
+func (m *muxes) AddHandler(method string, path string, h HandlerFunc, ms ...MiddlewareFunc) {
+	m.def.AddHandler(method, path, h, ms...)
 }
 
 func (m *muxes) Use(ms ...MiddlewareFunc) {

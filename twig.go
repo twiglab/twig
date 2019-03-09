@@ -45,7 +45,7 @@ type Twig struct {
 	HttpErrorHandler HttpErrorHandler
 
 	Logger Logger // Logger 组件负责日志输出
-	lead   *Lead  // Server 组
+	lead   *lead  // Server 组
 	muxes  *muxes // 路由器
 
 	Debug bool
@@ -85,12 +85,13 @@ func TODO() *Twig {
 	*/
 	t.WithLogger(NewLog(os.Stdout, "twig-"))
 
-	t.lead = &Lead{
-		t: t,
+	t.lead = &lead{
+		twig: t,
 	}
 
 	t.muxes = &muxes{
-		def: NewRadixTree(),
+		def:  NewRadixTree(),
+		twig: t,
 	}
 
 	return t

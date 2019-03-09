@@ -32,26 +32,17 @@ func (m MountFunc) Mount(target Assembler) {
 // Conf Twig路由配置工具
 type Conf struct {
 	target Assembler
-	n      Namer
 }
 
 func TwigConfig(r Register, twig *Twig) *Conf {
 	return &Conf{
 		target: newTarget(r, twig),
-		n:      twig,
 	}
 }
 func Config(r Register) *Conf {
 	return &Conf{
 		target: newTarget(r, nil),
-		n:      nil,
 	}
-}
-
-// SetName 设置当前Namer的名称
-func (c *Conf) SetName(name string) *Conf {
-	c.n.SetName(name)
-	return c
 }
 
 // Use 当前Register增加中间件
@@ -62,7 +53,7 @@ func (c *Conf) Use(m ...MiddlewareFunc) *Conf {
 
 // AddHandler 增加Handler
 func (c *Conf) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
-	c.n = c.target.AddHandler(method, path, handler, m...)
+	c.target.AddHandler(method, path, handler, m...)
 	return c
 }
 
@@ -98,7 +89,6 @@ func (c *Conf) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Con
 // Mount 挂载Mounter到当前Assembler
 func (c *Conf) Mount(mount Mounter) *Conf {
 	mount.Mount(c.target)
-	c.n = nil
 	return c
 }
 
@@ -140,13 +130,7 @@ func (g *Group) Use(mid ...MiddlewareFunc) {
 	g.m = append(g.m, mid...)
 }
 
-func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) Router {
-	name := HandlerName(h)
+func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) {
 	handler := Merge(h, g.m)
-
-	route := g.Assembler.AddHandler(method, g.prefix+path, handler, m...)
-
-	route.SetName(name)
-
-	return route
+	g.Assembler.AddHandler(method, g.prefix+path, handler, m...)
 }

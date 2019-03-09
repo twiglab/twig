@@ -147,9 +147,8 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 
 // RadixTree Twig默认的路由实现
 type RadixTree struct {
-	tree    *node
-	routers map[string]Router
-	m       []MiddlewareFunc
+	tree *node
+	m    []MiddlewareFunc
 
 	pool     sync.Pool
 	maxParam int
@@ -160,7 +159,6 @@ func NewRadixTree() *RadixTree {
 		tree: &node{
 			methodHandler: new(methodHandler),
 		},
-		routers:  map[string]Router{},
 		maxParam: 0,
 	}
 
@@ -456,14 +454,7 @@ func (r *RadixTree) Use(m ...MiddlewareFunc) {
 }
 
 // AddHandler Register#AddHandler
-func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) Router {
+func (r *RadixTree) AddHandler(method string, path string, h HandlerFunc, m ...MiddlewareFunc) {
 	handler := Merge(h, m)
 	r.Add(method, path, handler)
-	rd := &NamedRoute{
-		M: method,
-		P: path,
-		N: HandlerName(h),
-	}
-	r.routers[rd.ID()] = rd
-	return rd
 }

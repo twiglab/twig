@@ -70,6 +70,8 @@ type Ctx interface {
 	Twig() *Twig
 
 	Logger() Logger
+
+	PreCtx
 }
 
 type MuxerCtx interface {
@@ -78,4 +80,8 @@ type MuxerCtx interface {
 	Reset(http.ResponseWriter, *http.Request, *Twig)
 
 	Ctx
+}
+
+// PreCtx Pre中间件中使用
+type PreCtx interface {
 }

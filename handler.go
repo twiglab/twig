@@ -13,8 +13,8 @@ import (
 type HandlerFunc func(Ctx) error
 
 // Mount Mount当前Handler到注册器
-func (h HandlerFunc) Mount(reg Register, method, path string, m ...MiddlewareFunc) Router {
-	return reg.AddHandler(method, path, h, m...)
+func (h HandlerFunc) Mount(reg Register, method, path string, m ...MiddlewareFunc) {
+	reg.AddHandler(method, path, h, m...)
 }
 
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
