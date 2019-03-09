@@ -10,16 +10,7 @@ import (
 // HandlerFunc Twig的Handler方法
 type HandlerFunc func(Ctx) error
 
-// Mount Mount当前Handler到注册器
-func (h HandlerFunc) Mount(reg Register, method, path string, m ...MiddlewareFunc) {
-	reg.AddHandler(method, path, h, m...)
-}
-
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
-
-func (m MiddlewareFunc) UsedBy(reg Register) {
-	reg.Use(m)
-}
 
 // WrapHttpHandler 包装http.Handler 为HandlerFunc
 func WrapHttpHandler(h http.Handler) HandlerFunc {
