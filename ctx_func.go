@@ -48,7 +48,7 @@ func String(w http.ResponseWriter, code int, str string) (err error) {
 
 func IsWebSocket(r *http.Request) bool {
 	upgrade := r.Header.Get(HeaderUpgrade)
-	return upgrade == "websocket" || upgrade == "Websocket"
+	return strings.ToLower(upgrade) == "websocket"
 }
 
 func IsXMLHTTPRequest(r *http.Request) bool {
