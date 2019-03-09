@@ -254,7 +254,6 @@ func (c *radixTreeCtx) Reset(w http.ResponseWriter, r *http.Request, t *Twig) {
 	c.query = nil
 	c.store = nil
 	c.twig = t
-
 }
 
 func (c *radixTreeCtx) Release() {
