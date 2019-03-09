@@ -4,13 +4,28 @@ import (
 	"net/http"
 )
 
-/*
 // 组装器
-type Assembler struct{
+type Assembler struct {
 	Register
 	PluginHelper
 }
-*/
+
+type target struct {
+	Register
+	*Twig
+}
+
+// Use 消除冲突
+func (t *target) Use(m ...MiddlewareFunc) {
+	t.Register.Use(m...)
+}
+
+func NewExRegister(r Register, twig *Twig) ExRegister {
+	return &target{
+		Register: r,
+		Twig:     twig,
+	}
+}
 
 type ExRegister interface {
 	Register
@@ -46,23 +61,6 @@ func GetReqPath(r *http.Request) string {
 func Attach(i interface{}, t *Twig) {
 	if attacher, ok := i.(Attacher); ok {
 		attacher.Attach(t)
-	}
-}
-
-type target struct {
-	Register
-	*Twig
-}
-
-// Use 消除冲突
-func (t *target) Use(m ...MiddlewareFunc) {
-	t.Register.Use(m...)
-}
-
-func NewExRegister(r Register, twig *Twig) ExRegister {
-	return &target{
-		Register: r,
-		Twig:     twig,
 	}
 }
 
