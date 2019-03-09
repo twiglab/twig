@@ -39,6 +39,7 @@ func TwigConfig(r Register, twig *Twig) *Conf {
 		target: newTarget(r, twig),
 	}
 }
+
 func Config(r Register) *Conf {
 	return &Conf{
 		target: newTarget(r, nil),
@@ -105,14 +106,14 @@ func (c *Conf) Group(path string, f MountFunc) *Conf {
 
 /*
 	web.Conf().
-		Group("/api", func(r twig.ExRegister) {
+		Group("/api", func(r twig.Assembler) {
 			twig.Config(r).
 				Post("/addUser", func(c twig.Ctx) error {
 					...
 				})
 		})
 */
-// Group 提供理由分组支持
+// Group 提供路由分组支持
 type Group struct {
 	prefix string
 	m      []MiddlewareFunc
