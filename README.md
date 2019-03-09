@@ -13,10 +13,12 @@ BenchmarkTwigStatic-2      	   20000	     71232 ns/op	     870 B/op	       0 all
 BenchmarkTwigGitHubAPI-2   	   10000	    101092 ns/op	     878 B/op	       0 allocs/op
 BenchmarkTwigGplusAPI-2    	  300000	      5613 ns/op	      57 B/op	       0 allocs/op
 BenchmarkTwigParseAPI-2    	  200000	     10660 ns/op	     173 B/op	       0 allocs/op
+
 BenchmarkEchoStatic-2      	   20000	     63527 ns/op	    2126 B/op	     157 allocs/op
 BenchmarkEchoGitHubAPI-2   	   20000	     91821 ns/op	    2496 B/op	     203 allocs/op
 BenchmarkEchoGplusAPI-2    	  300000	      5072 ns/op	     161 B/op	      13 allocs/op
 BenchmarkEchoParseAPI-2    	  200000	      9195 ns/op	     381 B/op	      26 allocs/op
+
 BenchmarkGinStatic-2       	   20000	     75786 ns/op	    8405 B/op	     157 allocs/op
 BenchmarkGinGitHubAPI-2    	   10000	    103458 ns/op	   10619 B/op	     203 allocs/op
 BenchmarkGinGplusAPI-2     	  200000	      6049 ns/op	     710 B/op	      13 allocs/op
@@ -24,6 +26,8 @@ BenchmarkGinParseAPI-2     	  200000	     11559 ns/op	    1421 B/op	      26 all
 PASS
 ok  	web	24.538s
 ```
+
+*Twig 比Gin更快，更好用!*
 
 ## 安装
 
@@ -48,9 +52,10 @@ func main() {
 	web := twig.TODO()
 	web.AddServer(twig.NewServer(":4321")) // twig支持多server
 
+    // twig支持多路由， 在默认路由上增加handler
 	web.Config().
 		Get("/hello", func(c twig.Ctx) error {
-			return c.String(http.StatusOK, "Hello Twig!")
+			return c.String(twig.OK, "Hello Twig!")
 		})
 
 	web.Start()
@@ -61,7 +66,7 @@ func main() {
 
 - Twig的默认监听端口是4321, 或者自定义自己的Server
 - 使用twig.TODO()创建`默认的`Twig，默认的Twig包括，默认的路由实现（RadixTree)，默认的Logger和默认的HttpErrorHandler
-- twig.Config是Twig提供的配置工具（注意：在Twig的世界里，工具的定义为附属品，并不是Twig必须的一部分），Twig没有像别的webserver一样提供GET，POST等方法，所有的配置工作都通过Config完成
+- twig.Config是Twig提供的配置工具，Twig没有像别的webserver一样提供GET，POST等方法，所有的配置工作都通过Config完成
 - Twig要求所有的Server的实现必须是*非堵塞*的，Start方法将启动Twig，Twig提供了Signal组件用于堵塞应用，处理系统信号，完成和shell的交互
 
 

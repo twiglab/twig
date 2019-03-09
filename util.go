@@ -5,7 +5,7 @@ import (
 )
 
 // 组装器
-type Assembler struct {
+type Assembler interface {
 	Register
 	PluginHelper
 }
@@ -20,27 +20,22 @@ func (t *target) Use(m ...MiddlewareFunc) {
 	t.Register.Use(m...)
 }
 
-func NewExRegister(r Register, twig *Twig) ExRegister {
+func newTarget(r Register, twig *Twig) Assembler {
 	return &target{
 		Register: r,
 		Twig:     twig,
 	}
 }
 
-type ExRegister interface {
-	Register
-	PluginHelper
-}
-
 // Mouter 接口用于模块化设置路由
 type Mounter interface {
-	Mount(ExRegister)
+	Mount(Assembler)
 }
 
-type MountFunc func(ExRegister)
+type MountFunc func(Assembler)
 
-func (m MountFunc) Mount(r ExRegister) {
-	m(r)
+func (m MountFunc) Mount(target Assembler) {
+	m(target)
 }
 
 // M 全局通用的map
@@ -64,95 +59,94 @@ func Attach(i interface{}, t *Twig) {
 	}
 }
 
-// Config Twig路由配置工具
-type Config struct {
-	r ExRegister
-	n Namer
+// Conf Twig路由配置工具
+type Conf struct {
+	target Assembler
+	n      Namer
 }
 
-func NewConfig(r Register) *Config {
-	return TwigConfig(r, nil)
+func TwigConfig(r Register, twig *Twig) *Conf {
+	return &Conf{
+		target: newTarget(r, twig),
+		n:      twig,
+	}
 }
-
-func TwigConfig(r Register, twig *Twig) *Config {
-	return NewConfigEx(NewExRegister(r, twig))
-}
-
-func NewConfigEx(r ExRegister) *Config {
-	return &Config{
-		r: r,
+func Config(r Register) *Conf {
+	return &Conf{
+		target: newTarget(r, nil),
+		n:      nil,
 	}
 }
 
 // SetName 设置当前Namer的名称
-func (c *Config) SetName(name string) *Config {
+func (c *Conf) SetName(name string) *Conf {
 	c.n.SetName(name)
 	return c
 }
 
 // Use 当前Register增加中间件
-func (c *Config) Use(m ...MiddlewareFunc) *Config {
+func (c *Conf) Use(m ...MiddlewareFunc) *Conf {
 	c.Use(m...)
 	return c
 }
 
 // AddHandler 增加Handler
-func (c *Config) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
-	c.n = c.r.AddHandler(method, path, handler, m...)
+func (c *Conf) AddHandler(method, path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
+	c.n = c.target.AddHandler(method, path, handler, m...)
 	return c
 }
 
-func (c *Config) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(GET, path, handler, m...)
 }
 
-func (c *Config) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(POST, path, handler, m...)
 	return c.AddHandler(DELETE, path, handler, m...)
 }
 
-func (c *Config) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Put(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(PUT, path, handler, m...)
 }
 
-func (c *Config) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Patch(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(PATCH, path, handler, m...)
 }
 
-func (c *Config) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Head(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(HEAD, path, handler, m...)
 }
 
-func (c *Config) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Options(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(OPTIONS, path, handler, m...)
 }
 
-func (c *Config) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Config {
+func (c *Conf) Trace(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(TRACE, path, handler, m...)
 }
 
-// Mount 挂载Mounter到当前ExRegister
-func (c *Config) Mount(mount Mounter) *Config {
-	mount.Mount(c.r)
+// Mount 挂载Mounter到当前Assembler
+func (c *Conf) Mount(mount Mounter) *Conf {
+	mount.Mount(c.target)
 	c.n = nil
 	return c
 }
 
 // Static 增加静态路由
-func (c *Config) Static(path, file string, m ...MiddlewareFunc) *Config {
+func (c *Conf) Static(path, file string, m ...MiddlewareFunc) *Conf {
 	return c.Get(path, Static(file), m...)
 }
 
 // Group 配置路由组
-func (c *Config) Group(path string, f MountFunc) *Config {
-	f(NewGroup(c.r, path))
+func (c *Conf) Group(path string, f MountFunc) *Conf {
+	f(NewGroup(c.target, path))
 	return c
 }
 
 /*
-	web.Config().
+	web.Conf().
 		Group("/api", func(r twig.ExRegister) {
-			twig.NewConfigEx(r).
+			twig.Config(r).
 				Post("/addUser", func(c twig.Ctx) error {
 					...
 				})
@@ -162,13 +156,13 @@ func (c *Config) Group(path string, f MountFunc) *Config {
 type Group struct {
 	prefix string
 	m      []MiddlewareFunc
-	ExRegister
+	Assembler
 }
 
-func NewGroup(r ExRegister, prefix string) *Group {
+func NewGroup(assembler Assembler, prefix string) *Group {
 	return &Group{
-		prefix:     prefix,
-		ExRegister: r,
+		prefix:    prefix,
+		Assembler: assembler,
 	}
 }
 
@@ -180,7 +174,7 @@ func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFu
 	name := HandlerName(h)
 	handler := Merge(h, g.m)
 
-	route := g.ExRegister.AddHandler(method, g.prefix+path, handler, m...)
+	route := g.Assembler.AddHandler(method, g.prefix+path, handler, m...)
 
 	route.SetName(name)
 
