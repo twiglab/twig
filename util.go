@@ -34,13 +34,19 @@ type Conf struct {
 	target Assembler
 }
 
-func TwigConfig(r Register, twig *Twig) *Conf {
+func config(r Register, twig *Twig) *Conf {
 	return &Conf{
 		target: newTarget(r, twig),
 	}
 }
 
 func Config(r Register) *Conf {
+	if t, ok := r.(Assembler); ok {
+		return &Conf{
+			target: t,
+		}
+	}
+
 	return &Conf{
 		target: newTarget(r, nil),
 	}

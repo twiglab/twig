@@ -101,7 +101,7 @@ func (t *Twig) AddServer(s ...Server) {
 // AddMuxer 增加Muxer， match 决定这个muxer在何种情况使用
 func (t *Twig) AddMuxer(mux Muxer, match Matcher) *Conf {
 	t.muxes.AddMuxer(mux, match)
-	return TwigConfig(mux, t)
+	return config(mux, t)
 }
 
 func (t *Twig) AddMuxerMatcherFunc(mux Muxer, match MatcherFunc) *Conf {
@@ -231,5 +231,5 @@ func (t *Twig) SetType(typ string) {
 
 // Config 默认配置
 func (t *Twig) Config() *Conf {
-	return TwigConfig(t.muxes, t)
+	return config(t.muxes, t)
 }
