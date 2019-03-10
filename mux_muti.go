@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
+// Matcher 决定一个路由是否匹配当前请求
 type Matcher interface {
 	Match(req *http.Request) bool
 }

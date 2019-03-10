@@ -99,17 +99,16 @@ func (t *Twig) AddServer(s ...Server) {
 }
 
 // AddMuxer 增加Muxer， match 决定这个muxer在何种情况使用
-func (t *Twig) AddMuxer(mux Muxer, match Matcher) *Conf {
+func (t *Twig) AddMuxer(mux Muxer, match Matcher) Assembler {
 	t.muxes.AddMuxer(mux, match)
-	return config(mux, t)
+	return &target{
+		PluginHelper: t,
+		Register:     mux,
+	}
 }
 
-func (t *Twig) AddMuxerMatcherFunc(mux Muxer, match MatcherFunc) *Conf {
+func (t *Twig) AddMuxerMatcherFunc(mux Muxer, match MatcherFunc) Assembler {
 	return t.AddMuxer(mux, match)
-}
-
-func (t *Twig) EnableDebug() {
-	t.Debug = true
 }
 
 // Pre 中间件支持， 注意Pre中间件工作在路由之前
@@ -229,7 +228,10 @@ func (t *Twig) SetType(typ string) {
 	t.typ = typ
 }
 
-// Config 默认配置
-func (t *Twig) Config() *Conf {
-	return config(t.muxes, t)
+// Config 返回装配接口
+func (t *Twig) Config() Assembler {
+	return &target{
+		PluginHelper: t,
+		Register:     t.muxes,
+	}
 }

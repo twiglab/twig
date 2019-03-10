@@ -41,12 +41,6 @@ func config(r Register, twig *Twig) *Conf {
 }
 
 func Config(r Register) *Conf {
-	if t, ok := r.(Assembler); ok {
-		return &Conf{
-			target: t,
-		}
-	}
-
 	return &Conf{
 		target: newTarget(r, nil),
 	}
