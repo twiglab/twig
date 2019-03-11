@@ -4,6 +4,7 @@ package twig
 type Assembler interface {
 	Register
 	PluginHelper
+	//	Assemble() *Conf
 }
 
 type target struct {
@@ -17,6 +18,14 @@ func newTarget(r Register, twig *Twig) Assembler {
 		PluginHelper: twig,
 	}
 }
+
+/*
+func (target *target) Assemble() *Conf {
+	return &Conf{
+		target: target,
+	}
+}
+*/
 
 // Mouter 接口用于模块化设置路由
 type Mounter interface {
@@ -40,7 +49,18 @@ func config(r Register, twig *Twig) *Conf {
 	}
 }
 
+// Config 配置工具，对Register或者Assembler进行配置
+// 参数为Register，需要注意的是：Config函数最低要求是Register
+// 如果传入的是Register，那么调用插件方法时，会发生panic
+// 这个不是bug， Config的设计如此
+// 如果传入的是Assembler，那么可以进行plugin操作
 func Config(r Register) *Conf {
+	if a, ok := r.(Assembler); ok {
+		return &Conf{
+			target: a,
+		}
+	}
+
 	return &Conf{
 		target: newTarget(r, nil),
 	}
@@ -99,39 +119,39 @@ func (c *Conf) Static(path, file string, m ...MiddlewareFunc) *Conf {
 }
 
 // Group 配置路由组
-func (c *Conf) Group(path string, f MountFunc) *Conf {
-	f(NewGroup(c.target, path))
+func (c *Conf) Group(path string, mf MountFunc) *Conf {
+	mf(newGroup(c.target, path))
 	return c
 }
 
 /*
 	web.Conf().
 		Group("/api", func(r twig.Assembler) {
-			twig.Config(r).
+			twig.Assemble(r).
 				Post("/addUser", func(c twig.Ctx) error {
 					...
 				})
 		})
 */
 // Group 提供路由分组支持
-type Group struct {
+type group struct {
 	prefix string
 	m      []MiddlewareFunc
 	Assembler
 }
 
-func NewGroup(assembler Assembler, prefix string) *Group {
-	return &Group{
+func newGroup(assembler Assembler, prefix string) *group {
+	return &group{
 		prefix:    prefix,
 		Assembler: assembler,
 	}
 }
 
-func (g *Group) Use(mid ...MiddlewareFunc) {
+func (g *group) Use(mid ...MiddlewareFunc) {
 	g.m = append(g.m, mid...)
 }
 
-func (g *Group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) {
+func (g *group) AddHandler(method, path string, h HandlerFunc, m ...MiddlewareFunc) {
 	handler := Merge(h, g.m)
 	g.Assembler.AddHandler(method, g.prefix+path, handler, m...)
 }
