@@ -232,6 +232,6 @@ func (t *Twig) SetType(typ string) {
 func (t *Twig) Config() Assembler {
 	return &target{
 		PluginHelper: t,
-		Register:     t.muxes,
+		Register:     t.muxes.def,
 	}
 }

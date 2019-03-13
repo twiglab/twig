@@ -114,8 +114,10 @@ func (c *Conf) Mount(mount Mounter) *Conf {
 }
 
 // Static 增加静态路由
-func (c *Conf) Static(path, file string, m ...MiddlewareFunc) *Conf {
-	return c.Get(path, Static(file), m...)
+// path为web路径，file为文件系统的filepath
+// 如果filepath为目录，则默认index.html
+func (c *Conf) Static(path, filepath string, m ...MiddlewareFunc) *Conf {
+	return c.Get(path, Static(filepath), m...)
 }
 
 // Group 配置路由组
