@@ -116,6 +116,8 @@ func (c *Conf) Mount(mount Mounter) *Conf {
 // Static 增加静态路由
 // path为web路径，file为文件系统的filepath
 // 如果filepath为目录，则默认index.html
+// 通常path 应该以*结尾
+// 而filepath 应该从根目录开始
 func (c *Conf) Static(path, filepath string, m ...MiddlewareFunc) *Conf {
 	return c.Get(path, Static(filepath), m...)
 }
