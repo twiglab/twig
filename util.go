@@ -4,7 +4,6 @@ package twig
 type Assembler interface {
 	Register
 	PluginHelper
-	//	Assemble() *Conf
 }
 
 type target struct {
@@ -18,14 +17,6 @@ func newTarget(r Register, twig *Twig) Assembler {
 		PluginHelper: twig,
 	}
 }
-
-/*
-func (target *target) Assemble() *Conf {
-	return &Conf{
-		target: target,
-	}
-}
-*/
 
 // Mouter 接口用于模块化设置路由
 type Mounter interface {
@@ -131,7 +122,7 @@ func (c *Conf) Group(path string, mf MountFunc) *Conf {
 /*
 	web.Conf().
 		Group("/api", func(r twig.Assembler) {
-			twig.Assemble(r).
+			twig.Config(r).
 				Post("/addUser", func(c twig.Ctx) error {
 					...
 				})
