@@ -75,6 +75,9 @@ func (c *Conf) Get(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf 
 
 func (c *Conf) Post(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(POST, path, handler, m...)
+}
+
+func (c *Conf) Delete(path string, handler HandlerFunc, m ...MiddlewareFunc) *Conf {
 	return c.AddHandler(DELETE, path, handler, m...)
 }
 
