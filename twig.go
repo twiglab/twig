@@ -229,9 +229,11 @@ func (t *Twig) SetType(typ string) {
 }
 
 // Config 返回装配接口
-func (t *Twig) Config() Assembler {
-	return &target{
-		PluginHelper: t,
-		Register:     t.muxes.def,
-	}
+func (t *Twig) Config() *Conf {
+	return Config(
+		&target{
+			PluginHelper: t,
+			Register:     t.muxes.def,
+		},
+	)
 }
